@@ -30,6 +30,20 @@
                 }
             }
         ],
+        "grammars": [
+            {
+                "language": "alo",
+                "scopeName": "text.html.alo",
+                "path": "./syntaxes/alo.tmLanguage.json",
+                "embeddedLanguages": {
+                    "source.css": "css",
+                    "source.js": "javascript"
+                },
+                "tokenTypes": {
+                    "meta.tag string.quoted": "other"
+                }
+            }
+        ],
         "commands": [
             {
                 "command": "alo.hello",

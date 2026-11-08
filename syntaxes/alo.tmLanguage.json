@@ -1,0 +1,7 @@
+{
+    "name": "Alo",
+    "scopeName": "text.html.alo",
+    "patterns": [
+        { "include": "text.html.basic" }
+    ]
+}

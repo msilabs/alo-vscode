@@ -11,6 +11,16 @@ function activate(context) {
     const typing = vscode.workspace.onDidChangeTextDocument(autoInsert);
 
     context.subscriptions.push(hello, typing);
+    loadEmbeddedLanguageRules(context.extensionUri);
+}
+
+// VS Code loads a language's comment, bracket and indent rules only once it sees that language,
+// and it does not always notice the CSS and JS inside `.alo` files. Opening an empty file of each
+// language, without showing it, makes it load them. Files on disk never ask to be saved.
+function loadEmbeddedLanguageRules(extensionUri) {
+    for (const file of ['empty.css', 'empty.js']) {
+        vscode.workspace.openTextDocument(vscode.Uri.joinPath(extensionUri, 'embedded', file));
+    }
 }
 
 function autoInsert(event) {
