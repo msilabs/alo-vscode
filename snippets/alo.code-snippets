@@ -1,0 +1,121 @@
+{
+    "Alo page": {
+        "prefix": "alop",
+        "description": "A page with <head> and <template>",
+        "body": [
+            "<head>",
+            "\t<title>${1:${TM_DIRECTORY/^.*[\\/\\\\]//}}</title>",
+            "</head>",
+            "",
+            "<template>",
+            "\t<h1>${1}</h1>",
+            "\t$0",
+            "</template>",
+            ""
+        ]
+    },
+    "Alo layout": {
+        "prefix": "alol",
+        "description": "A layout that wraps its pages at <slot />",
+        "body": [
+            "<template>",
+            "\t$0",
+            "\t<slot />",
+            "</template>",
+            ""
+        ]
+    },
+    "Alo component": {
+        "prefix": "aloc",
+        "description": "A component with scoped style; the class comes from the file name",
+        "body": [
+            "<template>",
+            "\t<div class=\"${1:${TM_FILENAME_BASE/([a-z0-9])?([A-Z])/$1${1:+-}${2:/downcase}/g}}\">",
+            "\t\t${0:<slot />}",
+            "\t</div>",
+            "</template>",
+            "",
+            "<style>",
+            "\t.${1} {",
+            "\t}",
+            "</style>",
+            ""
+        ]
+    },
+    "Template for loop": {
+        "prefix": "tfor",
+        "description": "<template for=\"item in list\">",
+        "body": [
+            "<template for=\"${1:item} in ${2:list}\">",
+            "\t$0",
+            "</template>"
+        ]
+    },
+    "Template for loop with index": {
+        "prefix": "tfori",
+        "description": "<template for=\"(item, i) in list\">",
+        "body": [
+            "<template for=\"(${1:item}, ${2:i}) in ${3:list}\">",
+            "\t$0",
+            "</template>"
+        ]
+    },
+    "Template if": {
+        "prefix": "tif",
+        "description": "<template if=\"condition\">",
+        "body": [
+            "<template if=\"${1:condition}\">",
+            "\t$0",
+            "</template>"
+        ]
+    },
+    "Template if else": {
+        "prefix": "tifelse",
+        "description": "<template if> followed by <template else>",
+        "body": [
+            "<template if=\"${1:condition}\">",
+            "\t$2",
+            "</template>",
+            "<template else>",
+            "\t$0",
+            "</template>"
+        ]
+    },
+    "Template else-if": {
+        "prefix": "telif",
+        "description": "<template else-if=\"condition\">",
+        "body": [
+            "<template else-if=\"${1:condition}\">",
+            "\t$0",
+            "</template>"
+        ]
+    },
+    "Template else": {
+        "prefix": "telse",
+        "description": "<template else>",
+        "body": [
+            "<template else>",
+            "\t$0",
+            "</template>"
+        ]
+    },
+    "Slot": {
+        "prefix": "slot",
+        "description": "Where a layout's page or a component's children go",
+        "body": "<slot />"
+    },
+    "Raw HTML": {
+        "prefix": "raw",
+        "description": "{{{ }}} inserts HTML without escaping, e.g. a Markdown body",
+        "body": "{{{ ${1:item.body} }}}"
+    },
+    "Global style": {
+        "prefix": "sglobal",
+        "description": "<style global>: CSS that is not scoped to this file",
+        "body": [
+            "<style global>",
+            "\t$0",
+            "</style>"
+        ]
+    }
+}

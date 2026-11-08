@@ -44,6 +44,12 @@
                 }
             }
         ],
+        "snippets": [
+            {
+                "language": "alo",
+                "path": "./snippets/alo.code-snippets"
+            }
+        ],
         "commands": [
             {
                 "command": "alo.hello",
