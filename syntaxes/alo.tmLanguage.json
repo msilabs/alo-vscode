@@ -3,5 +3,129 @@
     "scopeName": "text.html.alo",
     "patterns": [
         { "include": "text.html.basic" }
-    ]
+    ],
+    "injections": {
+        "L:text.html.alo - (comment | source.js | source.css | meta.embedded.expression.alo)": {
+            "patterns": [
+                { "include": "#escaped-braces" },
+                { "include": "#raw-expression" },
+                { "include": "#expression" }
+            ]
+        },
+        "L:text.html.alo - (meta.tag | comment | source.js | source.css | meta.embedded.expression.alo)": {
+            "patterns": [
+                { "include": "#component-tag" },
+                { "include": "#template-tag" }
+            ]
+        },
+        "L:meta.tag.structure.template.start.html - (string | meta.embedded.expression.alo)": {
+            "patterns": [
+                { "include": "#template-logic" }
+            ]
+        },
+        "L:meta.tag.structure.slot.start.html - string": {
+            "patterns": [
+                { "include": "#self-closing-slash" }
+            ]
+        }
+    },
+    "repository": {
+        "escaped-braces": {
+            "match": "\\\\\\{\\{",
+            "name": "constant.character.escape.alo"
+        },
+        "raw-expression": {
+            "begin": "\\{\\{\\{",
+            "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.alo" } },
+            "end": "\\}\\}\\}",
+            "endCaptures": { "0": { "name": "punctuation.section.embedded.end.alo" } },
+            "name": "meta.embedded.expression.raw.alo",
+            "contentName": "source.js",
+            "patterns": [{ "include": "source.js#expression" }]
+        },
+        "expression": {
+            "begin": "\\{\\{",
+            "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.alo" } },
+            "end": "\\}\\}",
+            "endCaptures": { "0": { "name": "punctuation.section.embedded.end.alo" } },
+            "name": "meta.embedded.expression.alo",
+            "contentName": "source.js",
+            "patterns": [{ "include": "source.js#expression" }]
+        },
+        "component-tag": {
+            "begin": "(</?)([A-Z][A-Za-z0-9_]*(?:\\.[A-Z][A-Za-z0-9_]*)*)(?=[\\s/>]|$)",
+            "beginCaptures": {
+                "1": { "name": "punctuation.definition.tag.begin.html" },
+                "2": { "name": "entity.name.tag.html support.class.component.alo" }
+            },
+            "end": "/?>",
+            "endCaptures": { "0": { "name": "punctuation.definition.tag.end.html" } },
+            "name": "meta.tag.component.alo",
+            "patterns": [{ "include": "text.html.basic#attribute" }]
+        },
+        "template-tag": {
+            "comment": "HTML's grammar does not know <template> inside <svg>, but Alo logic works there too.",
+            "patterns": [
+                {
+                    "begin": "(<)(template)(?=[\\s>]|$)",
+                    "beginCaptures": {
+                        "1": { "name": "punctuation.definition.tag.begin.html" },
+                        "2": { "name": "entity.name.tag.html" }
+                    },
+                    "end": ">",
+                    "endCaptures": { "0": { "name": "punctuation.definition.tag.end.html" } },
+                    "name": "meta.tag.structure.template.start.html",
+                    "patterns": [{ "include": "text.html.basic#attribute" }]
+                },
+                {
+                    "match": "(</)(template)(\\s*)(>)",
+                    "captures": {
+                        "1": { "name": "punctuation.definition.tag.begin.html" },
+                        "2": { "name": "entity.name.tag.html" },
+                        "4": { "name": "punctuation.definition.tag.end.html" }
+                    },
+                    "name": "meta.tag.structure.template.end.html"
+                }
+            ]
+        },
+        "self-closing-slash": {
+            "comment": "Alo writes <slot />, which HTML's grammar would mark as an error.",
+            "match": "/(?=\\s*>)",
+            "name": "punctuation.definition.tag.end.html"
+        },
+        "template-logic": {
+            "patterns": [
+                {
+                    "begin": "(?<![\\w:.-])(for|if|else-if)(\\s*)(=)(\\s*)(\")",
+                    "beginCaptures": {
+                        "1": { "name": "keyword.control.alo" },
+                        "3": { "name": "punctuation.separator.key-value.html" },
+                        "5": { "name": "string.quoted.double.html punctuation.definition.string.begin.html" }
+                    },
+                    "end": "\"",
+                    "endCaptures": { "0": { "name": "string.quoted.double.html punctuation.definition.string.end.html" } },
+                    "name": "meta.attribute.logic.alo meta.embedded.expression.alo",
+                    "contentName": "source.js",
+                    "patterns": [{ "include": "source.js#expression" }]
+                },
+                {
+                    "begin": "(?<![\\w:.-])(for|if|else-if)(\\s*)(=)(\\s*)(')",
+                    "beginCaptures": {
+                        "1": { "name": "keyword.control.alo" },
+                        "3": { "name": "punctuation.separator.key-value.html" },
+                        "5": { "name": "string.quoted.single.html punctuation.definition.string.begin.html" }
+                    },
+                    "end": "'",
+                    "endCaptures": { "0": { "name": "string.quoted.single.html punctuation.definition.string.end.html" } },
+                    "name": "meta.attribute.logic.alo meta.embedded.expression.alo",
+                    "contentName": "source.js",
+                    "patterns": [{ "include": "source.js#expression" }]
+                },
+                {
+                    "match": "(?<![\\w:.-])else(?![\\w:.-])",
+                    "name": "keyword.control.alo"
+                }
+            ]
+        }
+    }
 }
