@@ -1,0 +1,25 @@
+{
+    "name": "alo-vscode",
+    "displayName": "Alo",
+    "description": "Language support for the Alo static web framework.",
+    "version": "0.0.1",
+    "publisher": "msilabs",
+    "license": "MIT",
+    "engines": {
+        "vscode": "^1.90.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "main": "./extension.js",
+    "activationEvents": [],
+    "contributes": {
+        "commands": [
+            {
+                "command": "alo.hello",
+                "title": "Hello",
+                "category": "Alo"
+            }
+        ]
+    }
+}
