@@ -18,6 +18,15 @@
     "main": "./extension.js",
     "activationEvents": [],
     "contributes": {
+        "configurationDefaults": {
+            "emmet.includeLanguages": {
+                "alo": "html"
+            },
+            "workbench.editor.customLabels.patterns": {
+                "**/pages/**/page.alo": "${dirname} (page)",
+                "**/pages/**/layout.alo": "${dirname} (layout)"
+            }
+        },
         "languages": [
             {
                 "id": "alo",

@@ -2,6 +2,7 @@
 
 const vscode = require('vscode');
 const { closingTag, expandBraces } = require('./lib/auto-insert');
+const { registerHtmlFeatures } = require('./features/html');
 
 function activate(context) {
     const hello = vscode.commands.registerCommand('alo.hello', () => {
@@ -11,15 +12,22 @@ function activate(context) {
     const typing = vscode.workspace.onDidChangeTextDocument(autoInsert);
 
     context.subscriptions.push(hello, typing);
-    loadEmbeddedLanguageRules(context.extensionUri);
+    registerHtmlFeatures(context);
+    loadEmbeddedLanguageRules(context.extensionUri).catch((err) => console.error('[alo]', err));
 }
 
 // VS Code loads a language's comment, bracket and indent rules only once it sees that language,
 // and it does not always notice the CSS and JS inside `.alo` files. Opening an empty file of each
 // language, without showing it, makes it load them. Files on disk never ask to be saved.
-function loadEmbeddedLanguageRules(extensionUri) {
-    for (const file of ['empty.css', 'empty.js']) {
-        vscode.workspace.openTextDocument(vscode.Uri.joinPath(extensionUri, 'embedded', file));
+// The HTML file also starts VS Code's HTML support early, before the first completion request.
+// The language is set by hand because a user's `files.associations` may map `.js` or `.html`
+// to something else.
+const EMBEDDED_FILES = { 'empty.css': 'css', 'empty.js': 'javascript', 'empty.html': 'html' };
+
+async function loadEmbeddedLanguageRules(extensionUri) {
+    for (const [file, language] of Object.entries(EMBEDDED_FILES)) {
+        const document = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(extensionUri, 'embedded', file));
+        if (document.languageId !== language) await vscode.languages.setTextDocumentLanguage(document, language);
     }
 }
 
