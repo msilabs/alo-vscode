@@ -64,6 +64,11 @@
                 "command": "alo.hello",
                 "title": "Hello",
                 "category": "Alo"
+            },
+            {
+                "command": "alo.showOutput",
+                "title": "Show Log",
+                "category": "Alo"
             }
         ]
     }
