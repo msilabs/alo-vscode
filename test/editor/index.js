@@ -706,6 +706,18 @@ async function diagnostics() {
 async function quickFixes() {
     const about = 'pages/(site)/about/page.alo';
     const problemsIn = (uri) => vscode.languages.getDiagnostics(uri).filter((d) => d.source === 'alo');
+    const layout = 'pages/(site)/layout.alo';
+    const originals = new Map([about, layout].map((file) => [file, fs.readFileSync(path.join(WS, file), 'utf8')]));
+
+    // Reverting would only work on the active editor, and with "files.autoSave" on a test's edit may
+    // already be on disk. So the original text is put back into the document and saved.
+    async function restore(file) {
+        const document = await vscode.workspace.openTextDocument(path.join(WS, file));
+        const edit = new vscode.WorkspaceEdit();
+        edit.replace(document.uri, document.validateRange(new vscode.Range(0, 0, document.lineCount, 0)), originals.get(file));
+        await vscode.workspace.applyEdit(edit);
+        await document.save();
+    }
 
     // Types `line` into the about page, waits for Alo's problem, and returns its quick fixes.
     async function fixesFor(line) {
@@ -734,32 +746,28 @@ async function quickFixes() {
         const { editor, actions } = await fixesFor('    <Crad>x</Crad>');
         const fix = actions.find((a) => a.title === 'Change to `<Card>`');
         const result = fix ? await applyAndRead(editor, fix) : {};
-        await open(about);
-        await revert();
+        await restore(about);
         return { ok: fix?.isPreferred && result.line === '<Card>x</Card>' && result.cleared, text: { titles: titles(actions), ...result } };
     });
     await check('quick fix: titel becomes title', async () => {
         const { editor, actions } = await fixesFor('    <Card titel="x" />');
         const fix = actions.find((a) => a.title === 'Change to `title`');
         const result = fix ? await applyAndRead(editor, fix) : {};
-        await open(about);
-        await revert();
+        await restore(about);
         return { ok: result.line === '<Card title="x" />' && result.cleared, text: { titles: titles(actions), ...result } };
     });
     await check('quick fix: dat becomes data inside {{ }}', async () => {
         const { editor, actions } = await fixesFor('    <p>{{ dat.site.name }}</p>');
         const fix = actions.find((a) => a.title === 'Change to `data`');
         const result = fix ? await applyAndRead(editor, fix) : {};
-        await open(about);
-        await revert();
+        await restore(about);
         return { ok: result.line === '<p>{{ data.site.name }}</p>' && result.cleared, text: { titles: titles(actions), ...result } };
     });
     await check('quick fix: <Section> becomes the HTML tag <section>', async () => {
         const { editor, actions } = await fixesFor('    <Section>x</Section>');
         const fix = actions.find((a) => a.title === 'Change to the HTML tag `<section>`');
         const result = fix ? await applyAndRead(editor, fix) : {};
-        await open(about);
-        await revert();
+        await restore(about);
         return { ok: result.line === '<section>x</section>' && result.cleared, text: { titles: titles(actions), ...result } };
     });
     // Applies the named fix after typing `line` into the about page; returns the new line.
@@ -767,8 +775,7 @@ async function quickFixes() {
         const { editor, actions } = await fixesFor('    ' + line);
         const fix = actions.find((a) => a.title === title);
         const result = fix ? await applyAndRead(editor, fix) : {};
-        await open(about);
-        await revert();
+        await restore(about);
         return { fix, ...result, titles: titles(actions) };
     }
     for (const [name, line, title, want] of [
@@ -784,7 +791,6 @@ async function quickFixes() {
         });
     }
     await check('quick fix: a layout without <slot /> gets one back', async () => {
-        const layout = 'pages/(site)/layout.alo';
         const editor = await open(layout);
         const uri = editor.document.uri;
         await waitUntil(() => problemsIn(uri).length === 0);
@@ -799,8 +805,7 @@ async function quickFixes() {
         if (fix) await vscode.workspace.applyEdit(fix.edit);
         const hasSlot = editor.document.getText().includes('<slot />');
         const cleared = await waitUntil(() => problemsIn(uri).length === 0);
-        await open(layout);
-        await revert();
+        await restore(layout);
         return { ok: Boolean(fix) && hasSlot && cleared, text: { message: diagnostic?.message.split('\n')[0], titles: titles(actions), hasSlot, cleared } };
     });
     await check('quick fix: create a missing component and open it', async () => {
@@ -823,8 +828,7 @@ async function quickFixes() {
             await revert();
             await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
         }
-        await open(about);
-        await revert();
+        await restore(about);
         await vscode.workspace.fs.delete(vscode.Uri.file(file), { useTrash: false }).then(undefined, () => {});
         await waitUntil(async () => !fs.existsSync(file));
         return {
@@ -1043,7 +1047,9 @@ async function commandsAndCodeLens() {
         url = await vscode.commands.executeCommand('alo.startDevServer');
         const home = url ? await httpGet(url) : { status: 0 };
         const about = url ? await httpGet(new URL('about/', url).toString()) : { status: 0 };
-        return { ok: home.status === 200 && about.status === 200 && about.body.includes('<html'), text: { url, home: home.status, about: about.status } };
+        const ok = home.status === 200 && about.status === 200 && about.body.includes('<html');
+        const failure = ok ? undefined : home.body.replace(/<style>[\s\S]*?<\/style>/, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 300);
+        return { ok, text: { url, home: home.status, about: about.status, failure } };
     });
     await check('the status bar shows the dev server', async () => {
         const item = api.devServers.item;
