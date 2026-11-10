@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1
+
+- The copy of Alo that comes with the extension is now Alo 1.1.0:
+    - A component in a folder written without its folder, like `<PostCard />` for `components/blog/PostCard.alo`, now suggests the full name, and the quick fix changes the tag to `<Blog.PostCard>`.
+    - A lowercase tag with a dot, like `<blog.PostCard>`, is an error with the right spelling as its hint.
+- README: badges, and a note that only projects made with an older `alo init` open `.alo` files as HTML.
+
 ## 0.1.0
 
 First release.

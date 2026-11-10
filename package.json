@@ -2,7 +2,7 @@
     "name": "alo-vscode",
     "displayName": "Alo",
     "description": "Alo static web framework: highlighting, component and data suggestions, Alo's own errors with quick fixes, the dev server and builds.",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "publisher": "msilabs",
     "license": "MIT",
     "icon": "icons/alo.png",
