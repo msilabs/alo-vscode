@@ -16,6 +16,11 @@
         "Programming Languages"
     ],
     "main": "./extension.js",
+    "scripts": {
+        "test": "node --test \"test/unit/*.test.js\"",
+        "test:editor": "node test/editor/run.js",
+        "test:editor:my-settings": "node test/editor/run.js --user-settings"
+    },
     "activationEvents": [],
     "contributes": {
         "configurationDefaults": {
