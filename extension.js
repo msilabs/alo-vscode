@@ -10,6 +10,8 @@ const { registerDiagnostics } = require('./features/diagnostics');
 const { registerQuickFixes } = require('./features/quick-fixes');
 const { registerAssociations } = require('./features/associations');
 const { registerExpressionFeatures } = require('./features/expressions');
+const { registerCommands } = require('./features/commands');
+const { registerCodeLens } = require('./features/codelens');
 
 function activate(context) {
     const log = vscode.window.createOutputChannel('Alo', { log: true });
@@ -28,10 +30,12 @@ function activate(context) {
     registerDiagnostics(context, log, projects);
     registerQuickFixes(context, projects);
     registerAssociations(context, log);
+    const devServers = registerCommands(context, projects);
+    registerCodeLens(context, projects, devServers, log);
     loadEmbeddedLanguageRules(context.extensionUri).catch((err) => log.error(err));
 
     // What other extensions (and our tests) get from `getExtension('msilabs.alo-vscode').exports`.
-    return { status, projects };
+    return { status, projects, devServers };
 }
 
 // VS Code loads a language's comment, bracket and indent rules only once it sees that language,

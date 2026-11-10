@@ -86,7 +86,47 @@
                 "command": "alo.useAloForAloFiles",
                 "title": "Open .alo Files as Alo",
                 "category": "Alo"
+            },
+            {
+                "command": "alo.new",
+                "title": "New…",
+                "category": "Alo"
+            },
+            {
+                "command": "alo.startDevServer",
+                "title": "Start Dev Server",
+                "category": "Alo",
+                "icon": "$(play)"
+            },
+            {
+                "command": "alo.stopDevServer",
+                "title": "Stop Dev Server",
+                "category": "Alo",
+                "icon": "$(debug-stop)"
+            },
+            {
+                "command": "alo.openInBrowser",
+                "title": "Open Dev Server in Browser",
+                "category": "Alo"
+            },
+            {
+                "command": "alo.build",
+                "title": "Build",
+                "category": "Alo"
+            },
+            {
+                "command": "alo.previewPage",
+                "title": "Open Page in Browser",
+                "category": "Alo"
             }
-        ]
+        ],
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "alo.previewPage",
+                    "when": "false"
+                }
+            ]
+        }
     }
 }

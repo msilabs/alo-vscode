@@ -975,11 +975,127 @@ async function restrictedMode() {
         const names = items.filter((i) => i.detail === 'Alo component').map(labelOf);
         return { ok: names.includes('Card'), text: names };
     });
+    await check('the dev server does not start in Restricted Mode', async () => {
+        await open('components/Counter.alo');
+        const url = await vscode.commands.executeCommand('alo.startDevServer');
+        return { ok: url === null && api.devServers.running.size === 0, text: { url } };
+    });
+    await check('CodeLens shows the URL but no button in Restricted Mode', async () => {
+        const editor = await open('pages/(site)/about/page.alo');
+        const titles = (await vscode.commands.executeCommand('vscode.executeCodeLensProvider', editor.document.uri)).map((l) => l.command?.title);
+        return { ok: titles.join() === '→ /about/', text: titles };
+    });
+    await check('Alo: New still works in Restricted Mode (it only writes a file)', async () => {
+        const result = await vscode.commands.executeCommand('alo.new', 'component', 'Safe');
+        return { ok: result?.file === 'components/Safe.alo' && fs.existsSync(path.join(WS, 'components', 'Safe.alo')), text: result };
+    });
     await check('reading features still work: data. keys', async () => {
         const { items } = await completionsAt('pages/r1/page.alo', '<template>\n    <p>{{ data.| }}</p>\n</template>\n', '.');
         const keys = items.filter((i) => i.kind === vscode.CompletionItemKind.Property).map(labelOf);
         return { ok: keys.includes('site'), text: keys };
     });
+}
+
+
+// ---------------------------------------------------------------- B9–B14: commands, dev server, CodeLens
+// Runs on the clean example, right after the quick fixes, so that `alo build` has nothing to fail on.
+
+function httpGet(url) {
+    return new Promise((resolve) => {
+        require('http')
+            .get(url, (res) => {
+                let body = '';
+                res.on('data', (chunk) => (body += chunk));
+                res.on('end', () => resolve({ status: res.statusCode, body }));
+            })
+            .on('error', (err) => resolve({ status: 0, body: err.message }));
+    });
+}
+
+async function commandsAndCodeLens() {
+    const api = vscode.extensions.getExtension('msilabs.alo-vscode').exports;
+    const lenses = async (file) => {
+        const editor = await open(file);
+        const list = await vscode.commands.executeCommand('vscode.executeCodeLensProvider', editor.document.uri);
+        return list.map((lens) => lens.command?.title).filter(Boolean);
+    };
+
+    await check('CodeLens: a page shows its URL', async () => {
+        const titles = await lenses('pages/(site)/about/page.alo');
+        return { ok: titles.includes('→ /about/') && titles.includes('Start dev server and open'), text: titles };
+    });
+    await check('CodeLens: a [slug] page shows its URL pattern and page count', async () => {
+        const titles = await lenses('pages/(site)/blog/[slug]/page.alo');
+        return { ok: titles.includes('→ /blog/:slug/ · 5 pages'), text: titles };
+    });
+    await check('CodeLens: a layout shows how many pages it wraps', async () => {
+        const titles = await lenses('pages/(site)/blog/layout.alo');
+        return { ok: titles.includes('Wraps 6 pages'), text: titles };
+    });
+    await check('CodeLens: not-found.alo is /404.html', async () => {
+        const titles = await lenses('pages/not-found.alo');
+        return { ok: titles.includes('→ /404.html'), text: titles };
+    });
+
+    let url = null;
+    await check('Alo: Start Dev Server serves the site', async () => {
+        await open('pages/(site)/about/page.alo');
+        url = await vscode.commands.executeCommand('alo.startDevServer');
+        const home = url ? await httpGet(url) : { status: 0 };
+        const about = url ? await httpGet(new URL('about/', url).toString()) : { status: 0 };
+        return { ok: home.status === 200 && about.status === 200 && about.body.includes('<html'), text: { url, home: home.status, about: about.status } };
+    });
+    await check('the status bar shows the dev server', async () => {
+        const item = api.devServers.item;
+        return { ok: Boolean(url) && item.text.includes(new URL(url).host), text: item.text };
+    });
+    await check('CodeLens offers "Open in browser" while the server runs', async () => {
+        await sleep(300);
+        const titles = await lenses('pages/(site)/about/page.alo');
+        return { ok: titles.includes('Open in browser'), text: titles };
+    });
+    await check('Alo: Stop Dev Server stops it', async () => {
+        await open('pages/(site)/about/page.alo');
+        await vscode.commands.executeCommand('alo.stopDevServer');
+        const stopped = await waitUntil(() => api.devServers.urlFor(WS) === null);
+        const after = url ? await httpGet(url) : { status: 0 };
+        return { ok: stopped && after.status === 0, text: { stopped, after: after.status } };
+    });
+
+    await check('Alo: Build builds the site into dist/', async () => {
+        await open('pages/(site)/about/page.alo');
+        const code = await vscode.commands.executeCommand('alo.build');
+        const built = fs.existsSync(path.join(WS, 'dist', 'index.html')) && fs.existsSync(path.join(WS, 'dist', 'about', 'index.html'));
+        return { ok: code === 0 && built, text: { code, built } };
+    });
+
+    const created = [];
+    for (const [kind, name, file] of [
+        ['component', 'blog/TeamMember', 'components/blog/TeamMember.alo'],
+        ['page', 'news/latest', 'pages/news/latest/page.alo'],
+        ['layout', 'news', 'pages/news/layout.alo'],
+    ]) {
+        await check(`Alo: New ${kind} "${name}" creates and opens ${file}`, async () => {
+            const result = await vscode.commands.executeCommand('alo.new', kind, name);
+            const opened = vscode.window.activeTextEditor && path.relative(WS, vscode.window.activeTextEditor.document.uri.fsPath).split(path.sep).join('/');
+            created.push(file);
+            return { ok: result?.file === file && fs.existsSync(path.join(WS, file)) && opened === file, text: { result, opened } };
+        });
+    }
+    await check('Alo: New post creates a dated draft', async () => {
+        const result = await vscode.commands.executeCommand('alo.new', 'post', 'blog/my-news');
+        const ok = /^data\/blog\/\d{4}-\d{2}-\d{2}-my-news\.md$/.test(result?.file ?? '') && fs.readFileSync(path.join(WS, result.file), 'utf8').includes('draft: true');
+        if (result?.file) created.push(result.file);
+        return { ok, text: result };
+    });
+    await check('Alo: New refuses a file that already exists', async () => {
+        const result = await vscode.commands.executeCommand('alo.new', 'component', 'Card');
+        return { ok: /already exists/.test(result?.error ?? ''), text: result };
+    });
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    for (const file of created) fs.rmSync(path.join(WS, file));
+    fs.rmSync(path.join(WS, 'pages', 'news'), { recursive: true, force: true });
+    fs.rmSync(path.join(WS, 'dist'), { recursive: true, force: true });
 }
 
 // ----------------------------------------------------------------
@@ -1001,6 +1117,7 @@ exports.run = async function () {
 
     await diagnostics();
     await quickFixes();
+    await commandsAndCodeLens();
     await typingAndComments();
     await grammar();
     await snippets();
