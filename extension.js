@@ -9,6 +9,7 @@ const { Projects } = require('./features/projects');
 const { registerDiagnostics } = require('./features/diagnostics');
 const { registerQuickFixes } = require('./features/quick-fixes');
 const { registerAssociations } = require('./features/associations');
+const { registerExpressionFeatures } = require('./features/expressions');
 
 function activate(context) {
     const log = vscode.window.createOutputChannel('Alo', { log: true });
@@ -25,6 +26,7 @@ function activate(context) {
     context.subscriptions.push(log, hello, showOutput, typing, projects);
     registerHtmlFeatures(context);
     registerComponentFeatures(context, projects);
+    registerExpressionFeatures(context, projects);
     const status = registerStatus(context, log, projects);
     registerDiagnostics(context, log, projects);
     registerQuickFixes(context, projects);

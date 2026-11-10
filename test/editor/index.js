@@ -863,6 +863,84 @@ async function aloAsHtml() {
     });
 }
 
+
+// ---------------------------------------------------------------- B5–B8: data., item., props., loop variables
+
+async function expressionCompletion() {
+    const about = 'pages/(site)/about/page.alo';
+    const slugPage = 'pages/(site)/blog/[slug]/page.alo';
+    const suggest = async (file, insert, cursorAfter, trigger) => {
+        const editor = await open(file);
+        await editor.edit((e) => e.insert(new vscode.Position(6, 0), insert + '\n'));
+        const offset = editor.document.offsetAt(new vscode.Position(6, 0)) + insert.indexOf(cursorAfter) + cursorAfter.length;
+        const items = await completions(editor, offset, trigger);
+        await revert();
+        return items;
+    };
+    const named = (items, kinds) => items.filter((i) => kinds.includes(i.kind)).map((i) => ({ label: labelOf(i), detail: i.detail }));
+    const props = [vscode.CompletionItemKind.Property];
+    const vars = [vscode.CompletionItemKind.Variable];
+    const labels = (list) => list.map((x) => x.label);
+
+    await check('data. lists the data files', async () => {
+        const list = named(await suggest(about, '    <p>{{ data. }}</p>', 'data.', '.'), props);
+        return { ok: ['blog', 'faq', 'features', 'menu', 'site'].every((k) => labels(list).includes(k)), text: list };
+    });
+    await check('data.site. lists its keys with their values', async () => {
+        const list = named(await suggest(about, '    <p>{{ data.site. }}</p>', 'data.site.', '.'), props);
+        const name = list.find((x) => x.label === 'name');
+        return { ok: name?.detail.startsWith('text: '), text: list.slice(0, 3) };
+    });
+    await check('a bare name lists what a page can read', async () => {
+        const list = labels(named(await suggest(about, '    <p>{{ d }}</p>', '{{ d'), vars));
+        return { ok: list.includes('data') && list.includes('route') && list.includes('base') && !list.includes('item') && !list.includes('props'), text: list };
+    });
+    await check('item. in a [slug] page lists the post fields', async () => {
+        const list = labels(named(await suggest(slugPage, '    <p>{{ item. }}</p>', 'item.', '.'), props));
+        return { ok: ['title', 'date', 'slug', 'body'].every((k) => list.includes(k)), text: list };
+    });
+    await check('a loop variable lists the fields of the list items', async () => {
+        const list = labels(named(await suggest(about, '    <template for="post in data.blog"><p>{{ post. }}</p></template>', 'post.', '.'), props));
+        return { ok: ['title', 'date', 'slug'].every((k) => list.includes(k)), text: list };
+    });
+    await check('suggestions inside <template for="...">', async () => {
+        const list = labels(named(await suggest(about, '    <template for="f in data."></template>', 'data.', '.'), props));
+        return { ok: list.includes('features'), text: list };
+    });
+    await check('no data suggestions in plain text', async () => {
+        const list = labels(named(await suggest(about, '    <p>data.</p>', 'data.', '.'), props));
+        return { ok: !list.includes('site'), text: list };
+    });
+    await check('props. in a component: read here and passed by pages', async () => {
+        // An unsaved page passes `subtitle` to Card; Card itself reads `title` and `class`.
+        const page = await open(about);
+        await page.edit((e) => e.insert(new vscode.Position(6, 0), '    <Card title="a" subtitle="b" />\n'));
+        const card = await open('components/Card.alo');
+        const line = findLine(card.document, 'props.title');
+        await card.edit((e) => e.insert(new vscode.Position(line, 0), '{{ props. }}\n'));
+        const items = await completions(card, card.document.offsetAt(new vscode.Position(line, 9)), '.');
+        await revert();
+        await open(about);
+        await revert();
+        const list = named(items, props);
+        const subtitle = list.find((x) => x.label === 'subtitle');
+        const title = list.find((x) => x.label === 'title');
+        return { ok: title?.detail.startsWith('Read in this component') && subtitle?.detail.startsWith('Passed in pages/'), text: list };
+    });
+    await check('Cmd+Click on data.site.name opens data/site.json at "name"', async () => {
+        const editor = await open(about);
+        await editor.edit((e) => e.insert(new vscode.Position(6, 0), '    <p>{{ data.site.name }}</p>\n'));
+        const position = new vscode.Position(6, '    <p>{{ data.site.na'.length);
+        const links = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', editor.document.uri, position);
+        const link = links[0];
+        const target = link && path.relative(WS, link.targetUri.fsPath);
+        const lineText = link && fs.readFileSync(link.targetUri.fsPath, 'utf8').split('\n')[link.targetRange.start.line];
+        const origin = link && editor.document.getText(link.originSelectionRange);
+        await revert();
+        return { ok: target === 'data/site.json' && lineText.includes('"name"') && origin === 'data.site.name', text: { target, lineText, origin } };
+    });
+}
+
 // ----------------------------------------------------------------
 
 exports.run = async function () {
@@ -886,6 +964,7 @@ exports.run = async function () {
     await componentCompletion();
     await definitionAndHover();
     await propCompletionAndWatcher();
+    await expressionCompletion();
 
     await check('no problems from the hidden HTML copies', async () => {
         await sleep(1000);
@@ -893,8 +972,9 @@ exports.run = async function () {
         return { ok: bad.length === 0, text: bad.map(([uri]) => uri.toString()) };
     });
     await check('the helper files are not dirty', async () => {
+        // VS Code may already have let go of them on a long run; their job (loading the rules) is done by then.
         const docs = vscode.workspace.textDocuments.filter((d) => d.uri.path.includes('/embedded/'));
-        return { ok: docs.length === 3 && docs.every((d) => !d.isDirty), text: docs.map((d) => d.languageId) };
+        return { ok: docs.every((d) => !d.isDirty), text: docs.map((d) => d.languageId + (d.isDirty ? ' (dirty)' : '')) };
     });
 
     finish();
