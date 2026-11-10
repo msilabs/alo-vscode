@@ -1,10 +1,28 @@
 {
     "name": "alo-vscode",
     "displayName": "Alo",
-    "description": "Language support for the Alo static web framework.",
-    "version": "0.0.1",
+    "description": "Alo static web framework: highlighting, component and data suggestions, Alo's own errors with quick fixes, the dev server and builds.",
+    "version": "0.1.0",
     "publisher": "msilabs",
     "license": "MIT",
+    "icon": "icons/alo.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/msilabs/alo-vscode.git"
+    },
+    "homepage": "https://github.com/msilabs/alo-vscode#readme",
+    "bugs": {
+        "url": "https://github.com/msilabs/alo-vscode/issues"
+    },
+    "keywords": [
+        "alo",
+        "static site generator",
+        "ssg",
+        "html",
+        "templates",
+        "components",
+        "bangla"
+    ],
     "engines": {
         "vscode": "^1.90.0"
     },
@@ -24,7 +42,7 @@
     "capabilities": {
         "untrustedWorkspaces": {
             "supported": "limited",
-            "description": "In Restricted Mode, Alo does not check for errors, because that runs the code in your templates, and it does not load the project's own Alo from node_modules."
+            "description": "In Restricted Mode, Alo does not check for errors or run the dev server and builds, because those run the code in your templates, and it does not load the project's own Alo from node_modules."
         },
         "virtualWorkspaces": {
             "supported": false,
