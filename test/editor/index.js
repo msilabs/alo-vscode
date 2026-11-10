@@ -762,6 +762,47 @@ async function quickFixes() {
         await revert();
         return { ok: result.line === '<section>x</section>' && result.cleared, text: { titles: titles(actions), ...result } };
     });
+    // Applies the named fix after typing `line` into the about page; returns the new line.
+    async function fixLine(line, title) {
+        const { editor, actions } = await fixesFor('    ' + line);
+        const fix = actions.find((a) => a.title === title);
+        const result = fix ? await applyAndRead(editor, fix) : {};
+        await open(about);
+        await revert();
+        return { fix, ...result, titles: titles(actions) };
+    }
+    for (const [name, line, title, want] of [
+        ['logic on an <li> is wrapped in <template>', '<ul><li if="true">a</li></ul>', 'Wrap in `<template if="true">`', '<ul><template if="true"><li>a</li></template></ul>'],
+        ['logic on a component is wrapped in <template>', '<Card for="x in [1]" title="a" />', 'Wrap in `<template for="x in [1]">`', '<template for="x in [1]"><Card title="a" /></template>'],
+        ['for and if on one <template> are nested', '<template for="x in [1, 2]" if="true"><p>{{ x }}</p></template>', 'Move `if` into a `<template>` inside the loop', '<template for="x in [1, 2]"><template if="true"><p>{{ x }}</p></template></template>'],
+        ['sort() becomes toSorted()', '<p>{{ data.features.sort().length }}</p>', 'Use `toSorted()` instead', '<p>{{ data.features.toSorted().length }}</p>'],
+        ['reverse() becomes toReversed()', '<template for="f in data.features.reverse()"><p>{{ f.title }}</p></template>', 'Use `toReversed()` instead', '<template for="f in data.features.toReversed()"><p>{{ f.title }}</p></template>'],
+    ]) {
+        await check('quick fix: ' + name, async () => {
+            const r = await fixLine(line, title);
+            return { ok: r.fix?.isPreferred && r.line === want && r.cleared, text: { titles: r.titles, line: r.line, cleared: r.cleared } };
+        });
+    }
+    await check('quick fix: a layout without <slot /> gets one back', async () => {
+        const layout = 'pages/(site)/layout.alo';
+        const editor = await open(layout);
+        const uri = editor.document.uri;
+        await waitUntil(() => problemsIn(uri).length === 0);
+        const slotLine = findLine(editor.document, '<slot />');
+        await editor.edit((e) => e.delete(editor.document.lineAt(slotLine).rangeIncludingLineBreak));
+        await waitUntil(() => problemsIn(uri).length > 0);
+        const [diagnostic] = problemsIn(uri);
+        const actions = diagnostic
+            ? (await vscode.commands.executeCommand('vscode.executeCodeActionProvider', uri, diagnostic.range, vscode.CodeActionKind.QuickFix.value)).filter((a) => a.kind?.value === 'quickfix')
+            : [];
+        const fix = actions.find((a) => a.title === 'Add `<slot />`');
+        if (fix) await vscode.workspace.applyEdit(fix.edit);
+        const hasSlot = editor.document.getText().includes('<slot />');
+        const cleared = await waitUntil(() => problemsIn(uri).length === 0);
+        await open(layout);
+        await revert();
+        return { ok: Boolean(fix) && hasSlot && cleared, text: { message: diagnostic?.message.split('\n')[0], titles: titles(actions), hasSlot, cleared } };
+    });
     await check('quick fix: create a missing component and open it', async () => {
         const { actions } = await fixesFor('    <Testimonial />');
         const fix = actions.find((a) => a.title === 'Create components/Testimonial.alo');

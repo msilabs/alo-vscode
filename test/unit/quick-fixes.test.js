@@ -71,3 +71,45 @@ test('no fix without a suggestion', () => {
     assert.deepEqual(fixes('<Card [[zzz]]="x" />', '`<Card>` never uses `zzz`.\nUse it in components/Card.alo as `{{ props.zzz }}`, or remove the prop.').fixes, []);
     assert.deepEqual(fixes('<p>[[{{ a + }}]]</p>', 'Cannot parse the expression `a +`').fixes, []);
 });
+
+test('logic on an element is wrapped in a <template>', () => {
+    let { text, fixes: [fix] } = fixes('<ul><li [[if]]="ok">a</li></ul>', '`<li if>` will not work.\nLogic only works on `<template>`: wrap the element in `<template if="ok">`.');
+    assert.equal(fix.title, 'Wrap in `<template if="ok">`');
+    assert.equal(apply(text, fix.edits), '<ul><template if="ok"><li>a</li></template></ul>');
+
+    ({ text, fixes: [fix] } = fixes('<p [[else]]>b</p>', '`<p else>` will not work.\nLogic only works on `<template>`: wrap the element in `<template else>`.'));
+    assert.equal(apply(text, fix.edits), '<template else><p>b</p></template>');
+
+    ({ text, fixes: [fix] } = fixes('[[<Card]] for="x in xs" title="a" />', 'Logic can only be written on a <template> tag.\n<template for="x in [1]">'));
+    assert.equal(apply(text, fix.edits), '<template for="x in xs"><Card title="a" /></template>');
+
+    ({ text, fixes: [fix] } = fixes('<div><img [[if]]="pic" src="a.png"></div>', '`<img if>` will not work.'));
+    assert.equal(apply(text, fix.edits), '<div><template if="pic"><img src="a.png"></template></div>', 'a void element has no closing tag');
+
+    ({ text, fixes: [fix] } = fixes('<li [[else-if]]="b">x</li>', '`<li else-if>` will not work.'));
+    assert.equal(apply(text, fix.edits), '<template else-if="b"><li>x</li></template>');
+});
+
+test('for and if on the same <template> are nested', () => {
+    const { text, fixes: [fix] } = fixes(
+        '<template for="x in xs" [[if]]="x.ok">\n    <p>{{ x }}</p>\n</template>',
+        '`for` and `if` cannot be on the same `<template>`.\nNest one inside the other:',
+    );
+    assert.equal(apply(text, fix.edits), '<template for="x in xs"><template if="x.ok">\n    <p>{{ x }}</p>\n</template></template>');
+});
+
+test('sort() and reverse() become toSorted() and toReversed()', () => {
+    let { text, fixes: [fix] } = fixes('<p>[[{{ data.blog.sort().length }}]]</p>', '`sort()` changes data, so it cannot be used on data arrays.');
+    assert.equal(fix.title, 'Use `toSorted()` instead');
+    assert.equal(apply(text, fix.edits), '<p>{{ data.blog.toSorted().length }}</p>');
+    ({ text, fixes: [fix] } = fixes('<template [[for]]="p in data.blog.reverse()">', '`reverse()` changes data, so it cannot be used on data arrays.'));
+    assert.equal(apply(text, fix.edits), '<template for="p in data.blog.toReversed()">');
+    assert.deepEqual(fixes('<p>[[{{ data.blog.push(1) }}]]</p>', '`push()` changes data, so it cannot be used on data arrays.').fixes, []);
+});
+
+test('a layout without <slot /> gets one before </template>', () => {
+    let { text, fixes: [fix] } = fixes('[[<]]template>\n    <main>hi</main>\n</template>\n', 'The layout has no `<slot />`.');
+    assert.equal(apply(text, fix.edits), '<template>\n    <main>hi</main>\n    <slot />\n</template>\n');
+    ({ text, fixes: [fix] } = fixes('[[<]]template><main></main></template>', 'The layout has no `<slot />`.'));
+    assert.equal(apply(text, fix.edits), '<template><main></main><slot /></template>');
+});
