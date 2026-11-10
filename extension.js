@@ -14,16 +14,13 @@ const { registerExpressionFeatures } = require('./features/expressions');
 function activate(context) {
     const log = vscode.window.createOutputChannel('Alo', { log: true });
 
-    const hello = vscode.commands.registerCommand('alo.hello', () => {
-        vscode.window.showInformationMessage('আলো এক্সটেনশন চালু আছে!');
-    });
     const showOutput = vscode.commands.registerCommand('alo.showOutput', () => log.show());
 
     const typing = vscode.workspace.onDidChangeTextDocument(autoInsert);
 
     const projects = new Projects(log);
 
-    context.subscriptions.push(log, hello, showOutput, typing, projects);
+    context.subscriptions.push(log, showOutput, typing, projects);
     registerHtmlFeatures(context);
     registerComponentFeatures(context, projects);
     registerExpressionFeatures(context, projects);
