@@ -37,7 +37,9 @@
     "scripts": {
         "test": "node --test \"test/unit/*.test.js\"",
         "test:editor": "node test/editor/run.js && node test/editor/run.js --alo-as-html && node test/editor/run.js --restricted",
-        "test:editor:my-settings": "node test/editor/run.js --user-settings && node test/editor/run.js --user-settings --alo-as-html && node test/editor/run.js --user-settings --restricted"
+        "test:editor:my-settings": "node test/editor/run.js --user-settings && node test/editor/run.js --user-settings --alo-as-html && node test/editor/run.js --user-settings --restricted",
+        "package": "npx @vscode/vsce package",
+        "test:packaged": "node test/editor/run.js --packaged && node test/editor/run.js --packaged --alo-as-html && node test/editor/run.js --packaged --restricted"
     },
     "capabilities": {
         "untrustedWorkspaces": {
