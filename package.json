@@ -18,10 +18,12 @@
     "main": "./extension.js",
     "scripts": {
         "test": "node --test \"test/unit/*.test.js\"",
-        "test:editor": "node test/editor/run.js",
-        "test:editor:my-settings": "node test/editor/run.js --user-settings"
+        "test:editor": "node test/editor/run.js && node test/editor/run.js --alo-as-html",
+        "test:editor:my-settings": "node test/editor/run.js --user-settings && node test/editor/run.js --user-settings --alo-as-html"
     },
-    "activationEvents": [],
+    "activationEvents": [
+        "workspaceContains:**/*.alo"
+    ],
     "contributes": {
         "configurationDefaults": {
             "emmet.includeLanguages": {
@@ -73,6 +75,11 @@
             {
                 "command": "alo.showOutput",
                 "title": "Show Log",
+                "category": "Alo"
+            },
+            {
+                "command": "alo.useAloForAloFiles",
+                "title": "Open .alo Files as Alo",
                 "category": "Alo"
             }
         ]

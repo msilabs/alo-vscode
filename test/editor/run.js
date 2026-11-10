@@ -4,6 +4,10 @@
 //
 //   node test/editor/run.js                    clean settings
 //   node test/editor/run.js --user-settings    with a copy of your own settings.json
+//   node test/editor/run.js --alo-as-html      a project whose settings open .alo files as HTML,
+//                                              as `alo init` writes them
+//   --restricted                               (with any of the above) opens the folder untrusted,
+//                                              in Restricted Mode
 //
 // Needs VS Code on macOS at the default place (or set VSCODE_BIN) and the `alo` repo next to this one.
 
@@ -30,6 +34,15 @@ fs.cpSync(EXAMPLE, WORKSPACE, {
     filter: (source) => !/[\\/](dist|\.alo|node_modules|\.DS_Store)$/.test(source),
 });
 
+const ALO_AS_HTML = process.argv.includes('--alo-as-html');
+if (ALO_AS_HTML) {
+    fs.mkdirSync(path.join(WORKSPACE, '.vscode'), { recursive: true });
+    fs.writeFileSync(
+        path.join(WORKSPACE, '.vscode', 'settings.json'),
+        JSON.stringify({ 'files.associations': { '*.alo': 'html', '*.foo': 'bar' } }, null, 4),
+    );
+}
+
 if (process.argv.includes('--user-settings')) {
     fs.mkdirSync(path.join(USER_DATA, 'User'), { recursive: true });
     fs.copyFileSync(USER_SETTINGS, path.join(USER_DATA, 'User', 'settings.json'));
@@ -44,12 +57,13 @@ spawnSync(
         `--extensionTestsPath=${path.join(__dirname, 'index.js')}`,
         `--user-data-dir=${USER_DATA}`,
         `--extensions-dir=${path.join(TEMP, 'extensions')}`,
-        '--disable-workspace-trust',
+        // `--restricted` keeps Workspace Trust on, so the folder opens in Restricted Mode like a new download.
+        ...(process.argv.includes('--restricted') ? [] : ['--disable-workspace-trust']),
         '--skip-welcome',
         '--skip-release-notes',
         WORKSPACE,
     ],
-    { env: { HOME: process.env.HOME, PATH: process.env.PATH }, stdio: 'ignore' },
+    { env: { HOME: process.env.HOME, PATH: process.env.PATH, ALO_TEST_SCENARIO: ALO_AS_HTML ? 'alo-as-html' : '' }, stdio: 'ignore' },
 );
 
 const results = fs.existsSync(RESULTS) ? fs.readFileSync(RESULTS, 'utf8') : 'ERROR no results: VS Code did not run the tests\n';

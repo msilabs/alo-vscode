@@ -286,8 +286,15 @@ async function snippets() {
         return { ok: labels.filter((l) => l === 'tfor').length === 1, text: labels.filter((l) => l.startsWith('tf')) };
     });
     await check('tfor is not suggested inside <script>', async () => {
-        const { items } = await completionsAt('snippets/complete.alo', '<script>\n    tfo|\n</script>\n');
-        return { ok: !items.map(labelOf).includes('tfor'), text: items.map(labelOf).filter((l) => l.startsWith('tf')) };
+        // Which snippets VS Code offers depends on the language at the cursor, which it only knows
+        // once it has colored the new file. Right after writing the file it may not have yet.
+        const { editor } = await completionsAt('snippets/complete.alo', '<script>\n    tfo|\n</script>\n');
+        let labels = [];
+        const ok = await waitUntil(async () => {
+            labels = (await completions(editor, editor.document.getText().indexOf('tfo') + 3)).map(labelOf);
+            return !labels.includes('tfor');
+        }, 20);
+        return { ok, text: labels.filter((l) => l.startsWith('tf')) };
     });
 }
 
@@ -374,7 +381,7 @@ async function statusBar() {
     });
     await check('command: Alo: Show Log', async () => {
         const commands = await vscode.commands.getCommands(true);
-        return { ok: commands.includes('alo.showOutput'), text: commands.filter((c) => c.startsWith('alo.')) };
+        return { ok: commands.includes('alo.showOutput') && commands.includes('alo.useAloForAloFiles'), text: commands.filter((c) => c.startsWith('alo.')) };
     });
 }
 
@@ -786,11 +793,44 @@ async function quickFixes() {
     });
 }
 
+
+// ---------------------------------------------------------------- `"*.alo": "html"` in the settings
+// Only in `run.js --alo-as-html`: the workspace starts with settings that open .alo files as HTML.
+
+async function aloAsHtml() {
+    const extension = vscode.extensions.getExtension('msilabs.alo-vscode');
+    await check('the extension starts although no file opens as Alo', async () => {
+        const active = await waitUntil(() => extension.isActive, 60);
+        return { ok: active, text: { active, trusted: vscode.workspace.isTrusted } };
+    });
+    await check('.alo files open as HTML before the fix', async () => {
+        const editor = await open('components/Counter.alo');
+        return { ok: editor.document.languageId === 'html', text: editor.document.languageId };
+    });
+    await check('"Alo: Open .alo Files as Alo" removes the setting and switches open files', async () => {
+        await vscode.commands.executeCommand('alo.useAloForAloFiles');
+        const settings = JSON.parse(fs.readFileSync(path.join(WS, '.vscode', 'settings.json'), 'utf8'));
+        const language = vscode.window.activeTextEditor.document.languageId;
+        return {
+            ok: language === 'alo' && JSON.stringify(settings['files.associations']) === '{"*.foo":"bar"}',
+            text: { language, settings },
+        };
+    });
+    await check('.alo files opened after the fix are Alo', async () => {
+        const editor = await open('components/Card.alo');
+        return { ok: editor.document.languageId === 'alo', text: editor.document.languageId };
+    });
+}
+
 // ----------------------------------------------------------------
 
 exports.run = async function () {
     WS = vscode.workspace.workspaceFolders[0].uri.fsPath;
     log('vscode ' + vscode.version);
+    if (process.env.ALO_TEST_SCENARIO === 'alo-as-html') {
+        await aloAsHtml();
+        return finish();
+    }
     const first = await open('components/Counter.alo');
     log('language of Counter.alo: ' + first.document.languageId);
     await sleep(1500);
@@ -816,8 +856,12 @@ exports.run = async function () {
         return { ok: docs.length === 3 && docs.every((d) => !d.isDirty), text: docs.map((d) => d.languageId) };
     });
 
+    finish();
+};
+
+function finish() {
     const total = lines.filter((l) => /^(PASS|FAIL|ERROR)/.test(l)).length;
     const failed = lines.filter((l) => /^(FAIL|ERROR)/.test(l)).length;
     log(`${total - failed}/${total} passed`);
     log('DONE');
-};
+}
