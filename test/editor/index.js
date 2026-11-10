@@ -424,6 +424,87 @@ async function componentCompletion() {
     }
 }
 
+
+// ---------------------------------------------------------------- step 9: go to definition and hover
+
+async function definitionAndHover() {
+    fs.writeFileSync(
+        path.join(WS, 'components', 'Profile.alo'),
+        '<template>\n    <div class="{{ props.class }}">{{ props.fullName }}<slot /></div>\n</template>\n',
+    );
+    const page = 'pages/d1/page.alo';
+    const text = '<template>\n    <Blog.PostCard post="{{ x }}" />\n    <Card title="a">x</Card>\n    <Profile full-name="A" />\n    <Crad />\n    <div class="a"></div>\n</template>\n<script>\n    const s = "<Card>";\n</script>\n';
+    const at = async (marker, nth = 0) => {
+        const editor = await fresh(page, text);
+        let index = -1;
+        for (let i = 0; i <= nth; i++) index = text.indexOf(marker, index + 1);
+        return { editor, position: editor.document.positionAt(index + 2) };
+    };
+    const definitions = async (marker, nth) => {
+        const { editor, position } = await at(marker, nth);
+        const links = await vscode.commands.executeCommand('vscode.executeDefinitionProvider', editor.document.uri, position);
+        return { editor, links };
+    };
+    const hoverText = async (marker, nth) => {
+        const { editor, position } = await at(marker, nth);
+        const hovers = await vscode.commands.executeCommand('vscode.executeHoverProvider', editor.document.uri, position);
+        return hovers.flatMap((h) => h.contents.map((c) => (typeof c === 'string' ? c : c.value))).join('\n');
+    };
+    const target = (link) => path.relative(WS, (link.targetUri ?? link.uri).fsPath).split(path.sep).join('/');
+
+    await check('definition: <Blog.PostCard opens its file', async () => {
+        const { editor, links } = await definitions('Blog.PostCard');
+        const link = links[0];
+        return {
+            ok: links.length === 1 && target(link) === 'components/blog/PostCard.alo' && editor.document.getText(link.originSelectionRange) === 'Blog.PostCard',
+            text: links.map((l) => target(l) + ' from ' + (l.originSelectionRange ? editor.document.getText(l.originSelectionRange) : '?')),
+        };
+    });
+    await check('definition: closing </Card> works too', async () => {
+        const { links } = await definitions('Card>', 0);
+        return { ok: links.length === 1 && target(links[0]) === 'components/Card.alo', text: links.map(target) };
+    });
+    await check('definition: nothing for an unknown component', async () => {
+        const { links } = await definitions('Crad');
+        return { ok: links.length === 0, text: links.map(target) };
+    });
+    await check('definition: nothing inside <script>', async () => {
+        const { links } = await definitions('Card>"');
+        return { ok: links.length === 0, text: links.map(target) };
+    });
+    await check('hover: file and props of a component', async () => {
+        const hover = await hoverText('Profile');
+        return {
+            ok: hover.includes('components/Profile.alo') && hover.includes('- `class`') && hover.includes('- `full-name` (read as `props.fullName`)'),
+            text: hover,
+        };
+    });
+    await check('hover: unsaved changes in the component count', async () => {
+        const component = await open('components/Profile.alo');
+        await component.edit((e) => e.insert(new vscode.Position(1, 4), '{{ props.age }}'));
+        const hover = await hoverText('Profile');
+        await open('components/Profile.alo');
+        await revert();
+        return { ok: hover.includes('- `age`'), text: hover };
+    });
+    await check('hover: an unknown component suggests the right name', async () => {
+        const hover = await hoverText('Crad');
+        return { ok: hover.includes('no such component') && hover.includes('Did you mean `<Card>`?'), text: hover };
+    });
+    await check('hover: a broken component shows its error', async () => {
+        fs.writeFileSync(path.join(WS, 'components', 'Broken.alo'), '<head></head>\n<template><p>x</p></template>\n');
+        const editor = await fresh('pages/d2/page.alo', '<template>\n    <Broken />\n</template>\n');
+        const hovers = await vscode.commands.executeCommand('vscode.executeHoverProvider', editor.document.uri, new vscode.Position(1, 7));
+        const hover = hovers.flatMap((h) => h.contents.map((c) => c.value ?? c)).join('\n');
+        fs.rmSync(path.join(WS, 'components', 'Broken.alo'));
+        return { ok: hover.includes('Could not read the component'), text: hover };
+    });
+    await check('hover: plain HTML tags get no Alo hover', async () => {
+        const hover = await hoverText('div class');
+        return { ok: !hover.includes('Alo component'), text: hover.slice(0, 60) };
+    });
+}
+
 // ----------------------------------------------------------------
 
 exports.run = async function () {
@@ -439,6 +520,7 @@ exports.run = async function () {
     await htmlFeatures();
     await statusBar();
     await componentCompletion();
+    await definitionAndHover();
 
     await check('no problems from the hidden HTML copies', async () => {
         await sleep(1000);
