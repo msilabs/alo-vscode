@@ -4,6 +4,7 @@ const vscode = require('vscode');
 const { closingTag, expandBraces } = require('./lib/auto-insert');
 const { registerHtmlFeatures } = require('./features/html');
 const { registerStatus } = require('./features/status');
+const { registerComponentCompletion } = require('./features/components');
 
 function activate(context) {
     const log = vscode.window.createOutputChannel('Alo', { log: true });
@@ -17,6 +18,7 @@ function activate(context) {
 
     context.subscriptions.push(log, hello, showOutput, typing);
     registerHtmlFeatures(context);
+    registerComponentCompletion(context, log);
     const status = registerStatus(context, log);
     loadEmbeddedLanguageRules(context.extensionUri).catch((err) => log.error(err));
 
