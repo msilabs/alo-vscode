@@ -317,7 +317,8 @@ function compile({ reader, mode = 'build', base: rawBase = '/', cache = null }) 
         }
     } catch (err) {
         if (err instanceof AloError) {
-            if (err.file && err.source === undefined && reader.exists(err.file)) err.source = reader.read(err.file);
+            // The source is only for the code frame, which needs a line. Without one, `file` may be a folder.
+            if (err.file && err.line && err.source === undefined && reader.exists(err.file)) err.source = reader.read(err.file);
             err.warnings = warnings;
         }
         throw err;

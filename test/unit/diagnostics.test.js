@@ -44,6 +44,17 @@ test('an unknown component is an error with a hint', () => {
     assert.match(problem.hint, /Did you mean `<Card>`/);
 });
 
+test('the bundled Alo suggests the full name for a component in a folder', () => {
+    const root = project({
+        [PAGE]: '<template>\n    <Blog.PostList />\n</template>\n',
+        'components/blog/PostList.alo': '<template>\n    <PostCard />\n</template>\n',
+        'components/blog/PostCard.alo': '<template>c</template>\n',
+    });
+    const error = check(root).find((p) => p.severity === 'error');
+    assert.equal(error.message, 'Component `<PostCard>` not found.');
+    assert.match(error.hint, /^Did you mean `<Blog\.PostCard>`\?/);
+});
+
 test('a mistyped prop is a warning', () => {
     const root = project({ [PAGE]: '<template>\n    <Card titel="a" />\n</template>\n', 'components/Card.alo': CARD });
     const problems = check(root);

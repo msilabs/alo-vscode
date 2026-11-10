@@ -5,7 +5,7 @@ const { evaluate } = require('./expression.js');
 const { VOID_ELEMENTS, HTML_TAGS } = require('./html-tags.js');
 const { isStatic, isWholeExpression, wholeValueOutcome, decodeEntities, propName } = require('./attributes.js');
 const { LOGIC_ATTRIBUTES, isLogicTemplate } = require('./sfc.js');
-const { expectedPath } = require('./components.js');
+const { expectedPath, kebabToPascal } = require('./components.js');
 
 const UNCHECKED_PROPS = ['class', 'id'];
 
@@ -119,13 +119,32 @@ function hasContent(nodes) {
 
 function failUnknownComponent(node, ctx) {
     const { components } = ctx.project;
-    const close = suggest(node.name, [...components.keys()]);
+    const names = [...components.keys()];
+    // `<PostCard>` for components/blog/PostCard.alo: the name is right, only the folder part is missing.
+    const inFolders = names.filter((name) => name.endsWith('.' + node.name));
+    const close = inFolders.length === 0 ? suggest(node.name, names) : null;
     const lower = node.name.toLowerCase();
     const hints = [];
     if (HTML_TAGS.has(lower)) hints.push(`For the HTML tag, write \`<${lower}>\` in lowercase.`);
+    if (inFolders.length === 1) {
+        hints.push(`Did you mean \`<${inFolders[0]}>\`? (${components.get(inFolders[0]).file})`);
+    } else if (inFolders.length > 1) {
+        hints.push(`It could be ${inFolders.map((name) => `\`<${name}>\``).join(' or ')}.`);
+    }
+    if (inFolders.length > 0) hints.push('A component in a folder is always written with its full name, even inside the same folder.');
     if (close) hints.push(`Did you mean \`<${close}>\`? (${components.get(close).file})`);
     if (hints.length === 0) hints.push(`Create the component: \`${expectedPath(node.name)}\``);
     fail(ctx, node, `Component \`<${node.name}>\` not found.`, hints.join('\n'));
+}
+
+// `<blog.PostCard>` is not HTML either: a dot in a tag name only makes sense for a component.
+function failDottedHtmlTag(node, ctx) {
+    const segments = node.name.split('.');
+    const file = segments.pop();
+    const name = [...segments.map(kebabToPascal), file.charAt(0).toUpperCase() + file.slice(1)].join('.');
+    const component = ctx.project.components.get(name);
+    const hint = `For the component, write \`<${name}>\`` + (component ? ` (${component.file}).` : '.');
+    fail(ctx, node, `\`<${node.name}>\` is not an HTML tag.`, hint);
 }
 
 // Whole-value `{{ }}` passes the real value; everything else becomes a plain (unescaped) string.
@@ -285,6 +304,7 @@ function renderSlot(node, ctx) {
 function renderElement(node, ctx) {
     checkElementLogic(node, ctx);
     if (isComponentName(node.name)) return renderComponent(node, ctx);
+    if (node.name.includes('.')) failDottedHtmlTag(node, ctx);
     if (node.name === 'slot' && ctx.slot !== undefined && !ctx.inPlainTemplate) return renderSlot(node, ctx);
 
     let attrs = '';

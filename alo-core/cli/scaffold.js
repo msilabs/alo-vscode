@@ -27,8 +27,13 @@ try {
 
 const GITIGNORE = 'node_modules/\ndist/\n.alo/\n';
 const GITATTRIBUTES = '*.alo linguist-language=HTML\n';
+// VS Code suggests installing the Alo extension when the project is opened.
+const VSCODE_EXTENSIONS = `{
+    "recommendations": ["msilabs.alo-vscode"]
+}
+`;
+// No "files.associations" for .alo: it would override the extension's own `alo` language.
 const VSCODE_SETTINGS = `{
-    "files.associations": { "*.alo": "html" },
     "workbench.editor.customLabels.patterns": {
         "**/pages/**/page.alo": "\${dirname} (page)",
         "**/pages/**/layout.alo": "\${dirname} (layout)"
@@ -84,6 +89,7 @@ function init(cwd, folder = '.') {
     writeNew(path.join(target, '.gitignore'), GITIGNORE);
     writeNew(path.join(target, '.gitattributes'), GITATTRIBUTES);
     writeNew(path.join(target, '.vscode', 'settings.json'), VSCODE_SETTINGS);
+    writeNew(path.join(target, '.vscode', 'extensions.json'), VSCODE_EXTENSIONS);
 
     const relative = path.relative(cwd, target);
     const steps = [];

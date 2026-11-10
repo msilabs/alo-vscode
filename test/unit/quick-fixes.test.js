@@ -39,6 +39,13 @@ test('dotted names and a > inside an attribute value', () => {
     assert.equal(apply(text, fix.edits), '<Blog.PostCard a="x > y">b</Blog.PostCard>');
 });
 
+test('a component in a folder written without its folder gets its full name', () => {
+    const message = 'Component `<PostCard>` not found.\nDid you mean `<Blog.PostCard>`? (components/blog/PostCard.alo)\nA component in a folder is always written with its full name, even inside the same folder.';
+    const { text, fixes: list } = fixes('[[<PostCard]] post="{{ post }}">x</PostCard>', message);
+    assert.deepEqual(list.map((f) => f.title), ['Change to `<Blog.PostCard>`']);
+    assert.equal(apply(text, list[0].edits), '<Blog.PostCard post="{{ post }}">x</Blog.PostCard>');
+});
+
 test('an HTML tag written with a capital letter', () => {
     const { text, fixes: list } = fixes('[[<Section]]>x</Section>', 'Component `<Section>` not found.\nFor the HTML tag, write `<section>` in lowercase.');
     assert.equal(list[0].title, 'Change to the HTML tag `<section>`');

@@ -358,9 +358,11 @@ async function statusBar() {
     const tooltip = () => api.status.tooltip.value;
 
     await check('status bar: bundled core for the site', async () => {
+        const extensionPath = vscode.extensions.getExtension('msilabs.alo-vscode').extensionPath;
+        const bundled = JSON.parse(fs.readFileSync(path.join(extensionPath, 'alo-core', 'package.json'), 'utf8')).version;
         await open('components/Counter.alo');
         return {
-            ok: api.status.text === '$(flame) Alo 1.0.0' && tooltip().includes('copy inside this extension') && /\d+ pages · \d+ components/.test(tooltip()),
+            ok: api.status.text === `$(flame) Alo ${bundled}` && tooltip().includes('copy inside this extension') && /\d+ pages · \d+ components/.test(tooltip()),
             text: tooltip(),
         };
     });
