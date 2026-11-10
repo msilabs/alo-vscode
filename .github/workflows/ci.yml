@@ -1,0 +1,19 @@
+name: CI
+on:
+    push:
+        branches: [main]
+    pull_request:
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [22, 24]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+            # Some tests use Alo's example project, from the Alo repo next to this one.
+            - run: git clone --depth 1 https://github.com/msilabs/alo.git ../alo || echo "Alo repo not available; tests that need it are skipped."
+            - run: npm test
