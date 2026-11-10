@@ -63,7 +63,7 @@ test('dataLocation finds the file and the line of a key', () => {
     const toKey = (name) => name.replace(/-([a-z0-9])/g, (_, ch) => ch.toUpperCase());
     const where = (p) => {
         const found = dataLocation(root, p.split('.'), toKey);
-        return found && `${path.relative(root, found.file)}:${found.line}`;
+        return found && `${path.relative(root, found.file).split(path.sep).join('/')}:${found.line}`;
     };
     assert.equal(where('data.site'), 'data/site.json:0');
     assert.equal(where('data.site.name'), 'data/site.json:1');
