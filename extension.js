@@ -6,6 +6,7 @@ const { registerHtmlFeatures } = require('./features/html');
 const { registerStatus } = require('./features/status');
 const { registerComponentFeatures } = require('./features/components');
 const { Projects } = require('./features/projects');
+const { registerDiagnostics } = require('./features/diagnostics');
 
 function activate(context) {
     const log = vscode.window.createOutputChannel('Alo', { log: true });
@@ -23,6 +24,7 @@ function activate(context) {
     registerHtmlFeatures(context);
     registerComponentFeatures(context, projects);
     const status = registerStatus(context, log, projects);
+    registerDiagnostics(context, log, projects);
     loadEmbeddedLanguageRules(context.extensionUri).catch((err) => log.error(err));
 
     // What other extensions (and our tests) get from `getExtension('msilabs.alo-vscode').exports`.

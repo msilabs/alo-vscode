@@ -53,6 +53,15 @@ function findLine(document, text) {
     throw new Error('line not found: ' + text);
 }
 
+// For things that happen a moment later: a debounced check, the file watcher.
+async function waitUntil(condition, tries = 40) {
+    for (let i = 0; i < tries; i++) {
+        if (await condition()) return true;
+        await sleep(150);
+    }
+    return false;
+}
+
 const labelOf = (item) => (typeof item.label === 'string' ? item.label : item.label.label);
 
 async function completions(editor, offset, trigger) {
@@ -604,6 +613,85 @@ async function propCompletionAndWatcher() {
     });
 }
 
+
+// ---------------------------------------------------------------- step 11: diagnostics
+// Runs first, on the clean example: Alo stops at the first error, so a broken file left by
+// another test would hide the error a test here expects.
+
+async function diagnostics() {
+    const problemsIn = (file) =>
+        vscode.languages.getDiagnostics(vscode.Uri.file(path.join(WS, file))).filter((d) => d.source === 'alo');
+    const allProblems = () =>
+        vscode.languages.getDiagnostics().flatMap(([uri, list]) => list.filter((d) => d.source === 'alo').map((d) => ({ uri, d })));
+    const describe = (d) => `${['error', 'warning', 'info', 'hint'][d.severity]}: ${d.message.split('\n')[0]}`;
+
+    // Edits a file without saving it, waits for a problem in `file`, then throws the edit away.
+    async function problemAfterEdit(editFile, edit, file = editFile) {
+        const editor = await open(editFile);
+        await editor.edit(edit);
+        await waitUntil(() => problemsIn(file).length > 0);
+        const problems = problemsIn(file);
+        const texts = problems.map((d) => vscode.workspace.textDocuments.find((t) => t.uri.fsPath === path.join(WS, file))?.getText(d.range));
+        await open(editFile);
+        await revert();
+        const cleared = await waitUntil(() => problemsIn(file).length === 0);
+        return { problems, texts, cleared };
+    }
+    const about = 'pages/(site)/about/page.alo';
+    const afterTemplate = (line) => (e) => e.insert(new vscode.Position(6, 0), line + '\n');
+
+    await check('diagnostics: the clean example has no problems', async () => {
+        await open(about);
+        await sleep(1200);
+        const problems = allProblems();
+        return { ok: problems.length === 0, text: problems.map(({ uri, d }) => path.basename(uri.fsPath) + ' ' + describe(d)) };
+    });
+    await check('diagnostics: an unknown component, while typing, without saving', async () => {
+        const { problems, texts, cleared } = await problemAfterEdit(about, afterTemplate('    <Crad />'));
+        const [d] = problems;
+        return {
+            ok: problems.length === 1 && d.severity === vscode.DiagnosticSeverity.Error && d.message.includes('`<Crad>` not found') && d.message.includes('Did you mean `<Card>`?') && texts[0] === '<Crad' && cleared,
+            text: problems.map(describe).concat(texts, `cleared: ${cleared}`),
+        };
+    });
+    await check('diagnostics: a mistyped prop is a warning on the attribute', async () => {
+        const { problems, texts, cleared } = await problemAfterEdit(about, afterTemplate('    <Card titel="x" />'));
+        const [d] = problems;
+        return {
+            ok: problems.length === 1 && d.severity === vscode.DiagnosticSeverity.Warning && d.message.includes('never uses `titel`') && texts[0] === 'titel' && cleared,
+            text: problems.map(describe).concat(texts),
+        };
+    });
+    await check('diagnostics: a bad expression underlines the whole {{ }}', async () => {
+        const { problems, texts } = await problemAfterEdit(about, afterTemplate('    <p>{{ a + }}</p>'));
+        return { ok: texts[0] === '{{ a + }}', text: problems.map(describe).concat(texts) };
+    });
+    await check('diagnostics: an error inside a component points to where it is used', async () => {
+        const card = 'components/Card.alo';
+        const { problems } = await problemAfterEdit(card, (e) => e.insert(new vscode.Position(3, 30), '.foo.bar'));
+        const related = problems[0]?.relatedInformation?.[0];
+        const usedIn = related && path.relative(WS, related.location.uri.fsPath);
+        return {
+            ok: problems.length === 1 && related?.message === 'Used here' && usedIn.startsWith('pages'),
+            text: problems.map(describe).concat(`used in ${usedIn}`),
+        };
+    });
+    await check('diagnostics: broken JSON in data/', async () => {
+        const { problems, cleared } = await problemAfterEdit('data/site.json', (e) => e.insert(new vscode.Position(0, 1), ','));
+        return { ok: problems.length === 1 && problems[0].message.startsWith('Invalid JSON') && cleared, text: problems.map(describe) };
+    });
+    await check('diagnostics: a component used nowhere gets a warning', async () => {
+        await open(about);
+        const file = path.join(WS, 'components', 'Lonely.alo');
+        fs.writeFileSync(file, '<template><p>alone</p></template>\n');
+        await waitUntil(() => problemsIn('components/Lonely.alo').length > 0);
+        const problems = problemsIn('components/Lonely.alo');
+        fs.rmSync(file);
+        const cleared = await waitUntil(() => problemsIn('components/Lonely.alo').length === 0);
+        return { ok: problems.length === 1 && problems[0].message.includes('never used') && cleared, text: problems.map(describe).concat(`cleared: ${cleared}`) };
+    });
+}
+
 // ----------------------------------------------------------------
 
 exports.run = async function () {
@@ -613,6 +701,7 @@ exports.run = async function () {
     log('language of Counter.alo: ' + first.document.languageId);
     await sleep(1500);
 
+    await diagnostics();
     await typingAndComments();
     await grammar();
     await snippets();
