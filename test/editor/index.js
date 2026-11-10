@@ -692,6 +692,100 @@ async function diagnostics() {
     });
 }
 
+
+// ---------------------------------------------------------------- step 12: quick fixes
+// Also runs early, on the clean example, for the same reason as the diagnostics.
+
+async function quickFixes() {
+    const about = 'pages/(site)/about/page.alo';
+    const problemsIn = (uri) => vscode.languages.getDiagnostics(uri).filter((d) => d.source === 'alo');
+
+    // Types `line` into the about page, waits for Alo's problem, and returns its quick fixes.
+    async function fixesFor(line) {
+        const editor = await open(about);
+        // The previous test's squiggle must be gone first, or it would be mistaken for the new one.
+        await waitUntil(() => problemsIn(editor.document.uri).length === 0);
+        await editor.edit((e) => e.insert(new vscode.Position(6, 0), line + '\n'));
+        await waitUntil(() => problemsIn(editor.document.uri).length > 0);
+        const [diagnostic] = problemsIn(editor.document.uri);
+        const actions = diagnostic
+            ? await vscode.commands.executeCommand('vscode.executeCodeActionProvider', editor.document.uri, diagnostic.range, vscode.CodeActionKind.QuickFix.value)
+            : [];
+        // The command does not hand back each action's diagnostics, so Alo's fixes are picked by kind.
+        // That leaves out VS Code's own Copilot "Fix" and "Explain".
+        return { editor, actions: actions.filter((a) => a.kind?.value === 'quickfix') };
+    }
+    async function applyAndRead(editor, action) {
+        await vscode.workspace.applyEdit(action.edit);
+        const line = editor.document.lineAt(6).text.trim();
+        const cleared = await waitUntil(() => problemsIn(editor.document.uri).length === 0);
+        return { line, cleared };
+    }
+    const titles = (actions) => actions.map((a) => a.title + (a.isPreferred ? ' (preferred)' : ''));
+
+    await check('quick fix: <Crad>…</Crad> becomes <Card>…</Card>', async () => {
+        const { editor, actions } = await fixesFor('    <Crad>x</Crad>');
+        const fix = actions.find((a) => a.title === 'Change to `<Card>`');
+        const result = fix ? await applyAndRead(editor, fix) : {};
+        await open(about);
+        await revert();
+        return { ok: fix?.isPreferred && result.line === '<Card>x</Card>' && result.cleared, text: { titles: titles(actions), ...result } };
+    });
+    await check('quick fix: titel becomes title', async () => {
+        const { editor, actions } = await fixesFor('    <Card titel="x" />');
+        const fix = actions.find((a) => a.title === 'Change to `title`');
+        const result = fix ? await applyAndRead(editor, fix) : {};
+        await open(about);
+        await revert();
+        return { ok: result.line === '<Card title="x" />' && result.cleared, text: { titles: titles(actions), ...result } };
+    });
+    await check('quick fix: dat becomes data inside {{ }}', async () => {
+        const { editor, actions } = await fixesFor('    <p>{{ dat.site.name }}</p>');
+        const fix = actions.find((a) => a.title === 'Change to `data`');
+        const result = fix ? await applyAndRead(editor, fix) : {};
+        await open(about);
+        await revert();
+        return { ok: result.line === '<p>{{ data.site.name }}</p>' && result.cleared, text: { titles: titles(actions), ...result } };
+    });
+    await check('quick fix: <Section> becomes the HTML tag <section>', async () => {
+        const { editor, actions } = await fixesFor('    <Section>x</Section>');
+        const fix = actions.find((a) => a.title === 'Change to the HTML tag `<section>`');
+        const result = fix ? await applyAndRead(editor, fix) : {};
+        await open(about);
+        await revert();
+        return { ok: result.line === '<section>x</section>' && result.cleared, text: { titles: titles(actions), ...result } };
+    });
+    await check('quick fix: create a missing component and open it', async () => {
+        const { actions } = await fixesFor('    <Testimonial />');
+        const fix = actions.find((a) => a.title === 'Create components/Testimonial.alo');
+        const file = path.join(WS, 'components', 'Testimonial.alo');
+        let content = null;
+        let opened = null;
+        let cleared = false;
+        if (fix) {
+            await vscode.workspace.applyEdit(fix.edit);
+            await vscode.commands.executeCommand(fix.command.command, ...fix.command.arguments);
+            await sleep(300);
+            // Like any refactoring, the new file opens with its text but unsaved, for you to look at first.
+            const created = vscode.window.activeTextEditor.document;
+            opened = path.relative(WS, created.uri.fsPath);
+            content = created.getText();
+            const aboutUri = vscode.Uri.file(path.join(WS, about));
+            cleared = await waitUntil(() => problemsIn(aboutUri).length === 0);
+            await revert();
+            await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+        }
+        await open(about);
+        await revert();
+        await vscode.workspace.fs.delete(vscode.Uri.file(file), { useTrash: false }).then(undefined, () => {});
+        await waitUntil(async () => !fs.existsSync(file));
+        return {
+            ok: content === '<template>\n    <div class="testimonial">\n        <slot />\n    </div>\n</template>\n' && opened === 'components/Testimonial.alo' && cleared,
+            text: { titles: titles(actions), opened, content, cleared },
+        };
+    });
+}
+
 // ----------------------------------------------------------------
 
 exports.run = async function () {
@@ -702,6 +796,7 @@ exports.run = async function () {
     await sleep(1500);
 
     await diagnostics();
+    await quickFixes();
     await typingAndComments();
     await grammar();
     await snippets();
