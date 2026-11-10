@@ -24,11 +24,11 @@ const TEMP = path.join(ROOT, '.vscode-test');
 const WORKSPACE = path.join(TEMP, 'ws');
 const USER_DATA = path.join(TEMP, 'ud');
 const RESULTS = path.join(TEMP, 'results.txt');
-const EXAMPLE = path.resolve(ROOT, '..', 'alo', 'example');
+const EXAMPLE = path.resolve(ROOT, '..', 'alo', 'site');
 const CODE = process.env.VSCODE_BIN || '/Applications/Visual Studio Code.app/Contents/MacOS/Code';
 const USER_SETTINGS = path.join(os.homedir(), 'Library', 'Application Support', 'Code', 'User', 'settings.json');
 
-// Every run starts from a fresh copy of Alo's example, so tests never touch the real files.
+// Every run starts from a fresh copy of Alo's site, so tests never touch the real files.
 for (const dir of [WORKSPACE, USER_DATA]) fs.rmSync(dir, { recursive: true, force: true });
 fs.rmSync(RESULTS, { force: true });
 fs.cpSync(EXAMPLE, WORKSPACE, {

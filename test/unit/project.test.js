@@ -9,7 +9,7 @@ const { findProjectRoot, loadCore, listComponents, componentProps, suggestCompon
 
 // The Alo repo is expected next to this one, as in `frameworks/alo` and `frameworks/alo-vscode`.
 const ALO = path.resolve(__dirname, '..', '..', '..', 'alo');
-const EXAMPLE = path.join(ALO, 'example');
+const EXAMPLE = path.join(ALO, 'site');
 const hasAlo = fs.existsSync(EXAMPLE);
 
 function tempProject(files = {}) {

@@ -14,6 +14,6 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: ${{ matrix.node-version }}
-            # Some tests use Alo's example project, from the Alo repo next to this one.
+            # Some tests use Alo's site project, from the Alo repo next to this one.
             - run: git clone --depth 1 https://github.com/msilabs/alo.git ../alo || echo "Alo repo not available; tests that need it are skipped."
             - run: npm test

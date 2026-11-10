@@ -214,7 +214,7 @@ const GRAMMAR_CASES = [
 ];
 
 async function grammar() {
-    await check('no invalid tokens in any example .alo file', async () => {
+    await check('no invalid tokens in any site .alo file', async () => {
         const files = (await vscode.workspace.findFiles('**/*.alo')).map((uri) => uri.fsPath);
         const bad = [];
         for (const file of files) {
@@ -357,7 +357,7 @@ async function statusBar() {
     const api = vscode.extensions.getExtension('msilabs.alo-vscode').exports;
     const tooltip = () => api.status.tooltip.value;
 
-    await check('status bar: bundled core for the example', async () => {
+    await check('status bar: bundled core for the site', async () => {
         await open('components/Counter.alo');
         return {
             ok: api.status.text === '$(flame) Alo 1.0.0' && tooltip().includes('copy inside this extension') && /\d+ pages · \d+ components/.test(tooltip()),
@@ -622,7 +622,7 @@ async function propCompletionAndWatcher() {
 
 
 // ---------------------------------------------------------------- step 11: diagnostics
-// Runs first, on the clean example: Alo stops at the first error, so a broken file left by
+// Runs first, on the clean site: Alo stops at the first error, so a broken file left by
 // another test would hide the error a test here expects.
 
 async function diagnostics() {
@@ -647,7 +647,7 @@ async function diagnostics() {
     const about = 'pages/(site)/about/page.alo';
     const afterTemplate = (line) => (e) => e.insert(new vscode.Position(6, 0), line + '\n');
 
-    await check('diagnostics: the clean example has no problems', async () => {
+    await check('diagnostics: the clean site has no problems', async () => {
         await open(about);
         await sleep(1200);
         const problems = allProblems();
@@ -701,7 +701,7 @@ async function diagnostics() {
 
 
 // ---------------------------------------------------------------- step 12: quick fixes
-// Also runs early, on the clean example, for the same reason as the diagnostics.
+// Also runs early, on the clean site, for the same reason as the diagnostics.
 
 async function quickFixes() {
     const about = 'pages/(site)/about/page.alo';
@@ -998,7 +998,7 @@ async function restrictedMode() {
 
 
 // ---------------------------------------------------------------- B9–B14: commands, dev server, CodeLens
-// Runs on the clean example, right after the quick fixes, so that `alo build` has nothing to fail on.
+// Runs on the clean site, right after the quick fixes, so that `alo build` has nothing to fail on.
 
 function httpGet(url) {
     return new Promise((resolve) => {
