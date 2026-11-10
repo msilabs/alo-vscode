@@ -941,6 +941,47 @@ async function expressionCompletion() {
     });
 }
 
+
+// ---------------------------------------------------------------- Restricted Mode
+// Only in `run.js --restricted`: the folder is not trusted, so no project code may run.
+
+async function restrictedMode() {
+    const api = vscode.extensions.getExtension('msilabs.alo-vscode').exports;
+    await check('the folder really is untrusted', async () => ({ ok: vscode.workspace.isTrusted === false, text: vscode.workspace.isTrusted }));
+    await check('the status bar says Restricted Mode', async () => {
+        await open('components/Counter.alo');
+        const tip = api.status.tooltip.value;
+        return { ok: api.status.text.startsWith('$(shield)') && tip.includes('Restricted Mode'), text: { text: api.status.text, tip } };
+    });
+    await check('no error checking: <Crad /> gets no squiggle', async () => {
+        const editor = await open('pages/(site)/about/page.alo');
+        await editor.edit((e) => e.insert(new vscode.Position(6, 0), '    <Crad />\n'));
+        await sleep(2000);
+        const problems = vscode.languages.getDiagnostics(editor.document.uri).filter((d) => d.source === 'alo');
+        await revert();
+        return { ok: problems.length === 0, text: problems.map((d) => d.message) };
+    });
+    await check("the project's own Alo from node_modules is not loaded", async () => {
+        const dir = path.join(TEMP, 'linked-untrusted');
+        fs.rmSync(dir, { recursive: true, force: true });
+        fs.mkdirSync(path.join(dir, 'node_modules', '@msilabs'), { recursive: true });
+        fs.symlinkSync(ALO_REPO, path.join(dir, 'node_modules', '@msilabs', 'alo'));
+        await fresh(path.join(dir, 'pages', 'page.alo'), '<template><h1>hi</h1></template>\n');
+        const tip = api.status.tooltip.value;
+        return { ok: tip.includes('copy inside this extension') && tip.includes('not used either'), text: tip };
+    });
+    await check('reading features still work: components after <', async () => {
+        const { items } = await completionsAt('pages/r1/page.alo', '<template>\n    <|\n</template>\n', '<');
+        const names = items.filter((i) => i.detail === 'Alo component').map(labelOf);
+        return { ok: names.includes('Card'), text: names };
+    });
+    await check('reading features still work: data. keys', async () => {
+        const { items } = await completionsAt('pages/r1/page.alo', '<template>\n    <p>{{ data.| }}</p>\n</template>\n', '.');
+        const keys = items.filter((i) => i.kind === vscode.CompletionItemKind.Property).map(labelOf);
+        return { ok: keys.includes('site'), text: keys };
+    });
+}
+
 // ----------------------------------------------------------------
 
 exports.run = async function () {
@@ -948,6 +989,10 @@ exports.run = async function () {
     log('vscode ' + vscode.version);
     if (process.env.ALO_TEST_SCENARIO === 'alo-as-html') {
         await aloAsHtml();
+        return finish();
+    }
+    if (process.env.ALO_TEST_SCENARIO === 'restricted') {
+        await restrictedMode();
         return finish();
     }
     const first = await open('components/Counter.alo');

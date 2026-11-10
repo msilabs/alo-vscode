@@ -16,6 +16,7 @@ function registerDiagnostics(context, log, projects) {
     const caches = new Map(); // root → { sfc, data }, kept between checks
     const shown = new Map(); // root → the URIs that currently have problems
     const timers = new Map(); // root → the pending check
+    const known = new Set(); // every project root seen, to check again when files or trust change
 
     function rootOf(document) {
         if (document.uri.scheme !== 'file') return null;
@@ -50,7 +51,14 @@ function registerDiagnostics(context, log, projects) {
         return diagnostic;
     }
 
+    function forget(root) {
+        for (const uri of (shown.get(root) ?? new Map()).values()) collection.delete(uri);
+        shown.delete(root);
+    }
+
     function check(root) {
+        // Checking renders the site, which runs the JavaScript in `{{ }}`: only in a trusted folder.
+        if (!vscode.workspace.isTrusted) return forget(root);
         const project = projects.forFile(path.join(root, '_'));
         if (!project) return;
         if (!caches.has(root)) caches.set(root, { sfc: new Map(), data: new Map() });
@@ -94,6 +102,7 @@ function registerDiagnostics(context, log, projects) {
 
     // Waits until typing pauses, so a fast typist does not trigger a check per keystroke.
     function schedule(root) {
+        known.add(root);
         clearTimeout(timers.get(root));
         timers.set(
             root,
@@ -122,7 +131,7 @@ function registerDiagnostics(context, log, projects) {
         // Closing an unsaved file throws its changes away, so the disk version counts again.
         vscode.workspace.onDidCloseTextDocument(scheduleFor),
         projects.onDidChange(() => {
-            for (const root of caches.keys()) schedule(root);
+            for (const root of known) schedule(root);
         }),
         { dispose: () => timers.forEach(clearTimeout) },
     );

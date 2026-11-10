@@ -63,7 +63,7 @@ spawnSync(
         '--skip-release-notes',
         WORKSPACE,
     ],
-    { env: { HOME: process.env.HOME, PATH: process.env.PATH, ALO_TEST_SCENARIO: ALO_AS_HTML ? 'alo-as-html' : '' }, stdio: 'ignore' },
+    { env: { HOME: process.env.HOME, PATH: process.env.PATH, ALO_TEST_SCENARIO: ALO_AS_HTML ? 'alo-as-html' : process.argv.includes('--restricted') ? 'restricted' : '' }, stdio: 'ignore' },
 );
 
 const results = fs.existsSync(RESULTS) ? fs.readFileSync(RESULTS, 'utf8') : 'ERROR no results: VS Code did not run the tests\n';

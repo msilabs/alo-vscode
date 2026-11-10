@@ -25,6 +25,8 @@ class Projects {
             watcher.onDidDelete(forget);
             return watcher;
         });
+        // Trusting the folder allows the project's own Alo and error checking, so start over.
+        this.trust = vscode.workspace.onDidGrantWorkspaceTrust(forget);
     }
 
     // { root, core, components, error } for a file, or null when it is not in an Alo project.
@@ -37,7 +39,7 @@ class Projects {
         const watched = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(root)) !== undefined;
         if (watched && this.cache.has(root)) return this.cache.get(root);
 
-        const core = loadCore(root);
+        const core = loadCore(root, { trusted: vscode.workspace.isTrusted });
         let components = null;
         let error = null;
         try {
@@ -53,6 +55,7 @@ class Projects {
 
     dispose() {
         for (const watcher of this.watchers) watcher.dispose();
+        this.trust.dispose();
         this.changed.dispose();
     }
 }

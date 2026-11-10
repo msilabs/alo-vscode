@@ -28,7 +28,7 @@ function registerStatus(context, log, projects) {
             return;
         }
 
-        const core = loadCore(root);
+        const core = loadCore(root, { trusted: vscode.workspace.isTrusted });
         const from = core.source === 'project' ? "the project's node_modules" : 'the copy inside this extension';
         let details;
         try {
@@ -38,8 +38,16 @@ function registerStatus(context, log, projects) {
             details = `Could not read the project: ${err.message}`;
         }
 
-        item.text = `$(flame) Alo ${core.version}`;
-        item.tooltip = new vscode.MarkdownString(`**Alo ${core.version}** from ${from}\n\n${details}\n\nClick to open the Alo log.`);
+        let restricted = '';
+        if (!vscode.workspace.isTrusted) {
+            restricted =
+                '\n\n**Restricted Mode:** errors are not checked here, because checking runs the code in your templates.' +
+                (core.untrusted ? " The project's own Alo in node_modules is not used either." : '') +
+                ' Trust the folder to turn this on.';
+        }
+
+        item.text = vscode.workspace.isTrusted ? `$(flame) Alo ${core.version}` : `$(shield) Alo ${core.version}`;
+        item.tooltip = new vscode.MarkdownString(`**Alo ${core.version}** from ${from}\n\n${details}${restricted}\n\nClick to open the Alo log.`);
         item.show();
 
         const key = root + '|' + core.dir;

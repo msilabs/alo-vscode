@@ -18,8 +18,18 @@
     "main": "./extension.js",
     "scripts": {
         "test": "node --test \"test/unit/*.test.js\"",
-        "test:editor": "node test/editor/run.js && node test/editor/run.js --alo-as-html",
-        "test:editor:my-settings": "node test/editor/run.js --user-settings && node test/editor/run.js --user-settings --alo-as-html"
+        "test:editor": "node test/editor/run.js && node test/editor/run.js --alo-as-html && node test/editor/run.js --restricted",
+        "test:editor:my-settings": "node test/editor/run.js --user-settings && node test/editor/run.js --user-settings --alo-as-html && node test/editor/run.js --user-settings --restricted"
+    },
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": "limited",
+            "description": "In Restricted Mode, Alo does not check for errors, because that runs the code in your templates, and it does not load the project's own Alo from node_modules."
+        },
+        "virtualWorkspaces": {
+            "supported": false,
+            "description": "Alo reads the project's folders from disk."
+        }
     },
     "activationEvents": [
         "workspaceContains:**/*.alo"
