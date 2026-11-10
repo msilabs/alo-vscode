@@ -1030,11 +1030,11 @@ async function commandsAndCodeLens() {
     });
     await check('CodeLens: a [slug] page shows its URL pattern and page count', async () => {
         const titles = await lenses('pages/(site)/blog/[slug]/page.alo');
-        return { ok: titles.includes('→ /blog/:slug/ · 5 pages'), text: titles };
+        return { ok: titles.includes('→ /blog/:slug/ · 6 pages'), text: titles };
     });
     await check('CodeLens: a layout shows how many pages it wraps', async () => {
         const titles = await lenses('pages/(site)/blog/layout.alo');
-        return { ok: titles.includes('Wraps 6 pages'), text: titles };
+        return { ok: titles.includes('Wraps 7 pages'), text: titles };
     });
     await check('CodeLens: not-found.alo is /404.html', async () => {
         const titles = await lenses('pages/not-found.alo');
