@@ -60,7 +60,9 @@ In a folder you have not trusted, the extension does not check for errors and do
 
 ## Projects made with `alo init`
 
-`alo init` writes `"files.associations": { "*.alo": "html" }` into `.vscode/settings.json`, so that editors without this extension still colour `.alo` files. With that setting, VS Code opens `.alo` files as HTML and this extension cannot help. The extension notices it and offers to remove it; you can also run **Alo: Open .alo Files as Alo**.
+New projects get a `.vscode/extensions.json` that recommends this extension, so VS Code offers to install it.
+
+Projects made with an older `alo init` have `"files.associations": { "*.alo": "html" }` in `.vscode/settings.json`. With that setting, VS Code opens `.alo` files as HTML and this extension cannot help. The extension notices it and offers to remove it; you can also run **Alo: Open .alo Files as Alo**.
 
 ## Known limits
 
