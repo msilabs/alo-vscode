@@ -3,17 +3,30 @@ on:
     push:
         branches: [main]
     pull_request:
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     test:
-        runs-on: ubuntu-latest
+        name: Node ${{ matrix.node-version }} · ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
         strategy:
+            fail-fast: false
             matrix:
+                os: [ubuntu-latest, windows-latest]
                 node-version: [22, 24]
+                include:
+                    # macOS runners are scarce; OS-specific bugs rarely depend on the Node version.
+                    - os: macos-latest
+                      node-version: 24
         steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
+            - uses: actions/checkout@v7
+            - uses: actions/setup-node@v7
               with:
                   node-version: ${{ matrix.node-version }}
             # Some tests use Alo's site project, from the Alo repo next to this one.
             - run: git clone --depth 1 https://github.com/msilabs/alo.git ../alo || echo "Alo repo not available; tests that need it are skipped."
+              shell: bash
             - run: npm test
