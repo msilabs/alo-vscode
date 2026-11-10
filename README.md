@@ -1,5 +1,9 @@
 # Alo for VS Code
 
+[![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/msilabs.alo-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=msilabs.alo-vscode)
+[![CI](https://github.com/msilabs/alo-vscode/actions/workflows/ci.yml/badge.svg)](https://github.com/msilabs/alo-vscode/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/msilabs/alo-vscode)](LICENSE)
+
 Editor support for [Alo](https://github.com/msilabs/alo), the lightweight static web framework where you write plain HTML, CSS and JS with components, layouts, loops and conditions.
 
 The extension uses Alo's own code to understand your project, so the editor follows the same rules as `node alo build`: the same component names, the same errors, the same hints.
