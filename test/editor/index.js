@@ -505,6 +505,105 @@ async function definitionAndHover() {
     });
 }
 
+
+// ---------------------------------------------------------------- step 10: prop completion and the file watcher
+
+async function propCompletionAndWatcher() {
+    fs.writeFileSync(
+        path.join(WS, 'components', 'Profile.alo'),
+        '<template>\n    <div class="{{ props.class }}">{{ props.fullName }}<slot /></div>\n</template>\n',
+    );
+    const ours = (items) => items.filter((i) => (i.detail ?? '').startsWith('Prop of'));
+    const labels = (items) => items.map(labelOf);
+
+    await check('props after <Card and a space', async () => {
+        const { items } = await completionsAt('pages/p1/page.alo', '<template>\n    <Card |/>\n</template>\n', ' ');
+        const list = labels(ours(items)).sort();
+        return { ok: list.join() === 'class,title', text: list };
+    });
+    await check('no HTML attributes inside a component tag', async () => {
+        const { items } = await completionsAt('pages/p1/page.alo', '<template>\n    <Card |/>\n</template>\n');
+        const html = labels(items).filter((l) => ['id', 'tabindex', 'onclick', 'style'].includes(l));
+        return { ok: html.length === 0 && labels(items).includes('title'), text: html };
+    });
+    await check('HTML attributes are still offered on HTML tags', async () => {
+        const { items } = await completionsAt('pages/p1/page.alo', '<template>\n    <div |></div>\n</template>\n');
+        return { ok: labels(items).includes('id') && ours(items).length === 0, text: labels(items).filter((l) => ['id', 'class'].includes(l)) };
+    });
+    await check('props already written are not offered again', async () => {
+        const { items } = await completionsAt('pages/p1/page.alo', '<template>\n    <Card title="a" |/>\n</template>\n', ' ');
+        return { ok: labels(ours(items)).join() === 'class', text: labels(ours(items)) };
+    });
+    await check('a camelCase prop is offered as kebab-case with ="|"', async () => {
+        const { items } = await completionsAt('pages/p1/page.alo', '<template>\n    <Profile\n        |\n    />\n</template>\n');
+        const item = ours(items).find((i) => labelOf(i) === 'full-name');
+        return { ok: item?.insertText.value === 'full-name="$1"' && item.label.description === 'props.fullName', text: item?.insertText.value };
+    });
+    await check('no props inside a quoted value', async () => {
+        const { items } = await completionsAt('pages/p1/page.alo', '<template>\n    <Card title="a |" />\n</template>\n', ' ');
+        return { ok: ours(items).length === 0, text: labels(ours(items)) };
+    });
+
+    const componentNames = async () => {
+        const { items } = await completionsAt('pages/p2/page.alo', '<template>\n    <|\n</template>\n', '<');
+        return items.filter((i) => i.detail === 'Alo component').map(labelOf);
+    };
+    // The watcher hears about changes made outside VS Code (a terminal, Finder) a moment later.
+    const waitFor = async (condition) => {
+        for (let i = 0; i < 30; i++) {
+            if (await condition()) return true;
+            await sleep(200);
+        }
+        return false;
+    };
+
+    await check('cache: the project is remembered and forgotten on a file change', async () => {
+        const { projects } = vscode.extensions.getExtension('msilabs.alo-vscode').exports;
+        await componentNames();
+        const remembered = projects.cache.has(WS);
+        const first = projects.forFile(path.join(WS, 'pages', 'p2', 'page.alo'));
+        const same = projects.forFile(path.join(WS, 'components', 'Card.alo')) === first;
+        fs.writeFileSync(path.join(WS, 'components', 'Temp.alo'), '<template></template>\n');
+        const forgotten = await waitFor(async () => !projects.cache.has(WS));
+        fs.rmSync(path.join(WS, 'components', 'Temp.alo'));
+        await waitFor(async () => !(await componentNames()).includes('Temp'));
+        return { ok: remembered && same && forgotten, text: { remembered, same, forgotten } };
+    });
+    await check('watcher: a new component file shows up', async () => {
+        await componentNames();
+        fs.writeFileSync(path.join(WS, 'components', 'NewThing.alo'), '<template><p>new</p></template>\n');
+        const ok = await waitFor(async () => (await componentNames()).includes('NewThing'));
+        return { ok, text: await componentNames() };
+    });
+    await check('watcher: a deleted component file goes away', async () => {
+        fs.rmSync(path.join(WS, 'components', 'NewThing.alo'));
+        const ok = await waitFor(async () => !(await componentNames()).includes('NewThing'));
+        return { ok, text: await componentNames() };
+    });
+    await check('watcher: renaming a folder renames its components', async () => {
+        fs.renameSync(path.join(WS, 'components', 'blog'), path.join(WS, 'components', 'news'));
+        const ok = await waitFor(async () => {
+            const names = await componentNames();
+            return names.includes('News.PostCard') && !names.includes('Blog.PostCard');
+        });
+        const names = await componentNames();
+        fs.renameSync(path.join(WS, 'components', 'news'), path.join(WS, 'components', 'blog'));
+        await waitFor(async () => (await componentNames()).includes('Blog.PostCard'));
+        return { ok, text: names.filter((n) => n.includes('.')) };
+    });
+    await check('watcher: the status bar count updates without switching files', async () => {
+        const api = vscode.extensions.getExtension('msilabs.alo-vscode').exports;
+        await open('components/Counter.alo');
+        const count = () => Number(/(\d+) components?/.exec(api.status.tooltip.value)?.[1]);
+        const before = count();
+        fs.writeFileSync(path.join(WS, 'components', 'Extra.alo'), '<template><p>x</p></template>\n');
+        const ok = await waitFor(async () => count() === before + 1);
+        const after = count();
+        fs.rmSync(path.join(WS, 'components', 'Extra.alo'));
+        return { ok, text: `${before} → ${after}` };
+    });
+}
+
 // ----------------------------------------------------------------
 
 exports.run = async function () {
@@ -521,6 +620,7 @@ exports.run = async function () {
     await statusBar();
     await componentCompletion();
     await definitionAndHover();
+    await propCompletionAndWatcher();
 
     await check('no problems from the hidden HTML copies', async () => {
         await sleep(1000);

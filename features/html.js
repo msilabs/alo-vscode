@@ -2,6 +2,7 @@
 
 const vscode = require('vscode');
 const { expressionRanges, isInside, htmlView } = require('../lib/embedded');
+const { componentTagContext } = require('../lib/prop-completion');
 
 // VS Code's own HTML support only answers for HTML documents. So for each request we give it
 // an HTML copy of the `.alo` file at a separate URI, ask it, and hand its answer back.
@@ -45,6 +46,9 @@ function registerHtmlFeatures(context) {
         'alo',
         {
             async provideCompletionItems(document, position, token, context) {
+                // Attributes on a component are its props, not HTML attributes: `class` or `id` there
+                // only does something if the component reads it. Those come from features/components.js.
+                if (componentTagContext(document.getText(), document.offsetAt(position))) return undefined;
                 const list = await askHtml(document, position, 'vscode.executeCompletionItemProvider', context.triggerCharacter);
                 if (!list) return undefined;
                 // Emmet answers in `.alo` files directly, so its answers from the HTML copy would show twice.

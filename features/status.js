@@ -6,7 +6,7 @@ const { findProjectRoot, loadCore, summarize } = require('../lib/project');
 const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 // Shows which Alo core the editor uses for the active file, e.g. "Alo 1.0.0", in the status bar.
-function registerStatus(context, log) {
+function registerStatus(context, log, projects) {
     const item = vscode.window.createStatusBarItem('alo.status', vscode.StatusBarAlignment.Right, 100);
     item.name = 'Alo';
     item.command = 'alo.showOutput';
@@ -52,7 +52,7 @@ function registerStatus(context, log) {
         }
     }
 
-    context.subscriptions.push(item, vscode.window.onDidChangeActiveTextEditor(update));
+    context.subscriptions.push(item, vscode.window.onDidChangeActiveTextEditor(update), projects.onDidChange(update));
     update();
     return item;
 }

@@ -5,6 +5,7 @@ const { closingTag, expandBraces } = require('./lib/auto-insert');
 const { registerHtmlFeatures } = require('./features/html');
 const { registerStatus } = require('./features/status');
 const { registerComponentFeatures } = require('./features/components');
+const { Projects } = require('./features/projects');
 
 function activate(context) {
     const log = vscode.window.createOutputChannel('Alo', { log: true });
@@ -16,14 +17,16 @@ function activate(context) {
 
     const typing = vscode.workspace.onDidChangeTextDocument(autoInsert);
 
-    context.subscriptions.push(log, hello, showOutput, typing);
+    const projects = new Projects(log);
+
+    context.subscriptions.push(log, hello, showOutput, typing, projects);
     registerHtmlFeatures(context);
-    registerComponentFeatures(context, log);
-    const status = registerStatus(context, log);
+    registerComponentFeatures(context, projects);
+    const status = registerStatus(context, log, projects);
     loadEmbeddedLanguageRules(context.extensionUri).catch((err) => log.error(err));
 
     // What other extensions (and our tests) get from `getExtension('msilabs.alo-vscode').exports`.
-    return { status };
+    return { status, projects };
 }
 
 // VS Code loads a language's comment, bracket and indent rules only once it sees that language,

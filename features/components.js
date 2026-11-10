@@ -3,22 +3,17 @@
 const fs = require('fs');
 const path = require('path');
 const vscode = require('vscode');
-const { findProjectRoot, loadCore, listComponents, componentProps, suggestComponent } = require('../lib/project');
+const { componentProps, suggestComponent } = require('../lib/project');
 const { componentNameStart } = require('../lib/component-completion');
 const { componentTagAt, attributeName } = require('../lib/component-tag');
+const { componentTagContext } = require('../lib/prop-completion');
 
-// The project, its Alo core and its components for a document, or null outside an Alo project.
-function projectOf(document, log) {
+// The project (from the cache) for a document, or null outside an Alo project or when Alo
+// cannot list its components.
+function projectOf(document, projects) {
     if (document.uri.scheme !== 'file') return null;
-    const root = findProjectRoot(document.uri.fsPath);
-    if (!root) return null;
-    const core = loadCore(root);
-    try {
-        return { root, core, components: listComponents(root, core) };
-    } catch (err) {
-        log.warn(`Could not list components: ${err.message}`);
-        return null;
-    }
+    const project = projects.forFile(document.uri.fsPath);
+    return project?.components ? project : null;
 }
 
 // An open editor may hold changes that are not saved yet; those count.
@@ -28,22 +23,22 @@ function readFile(fsPath) {
 }
 
 // The component tag under the cursor and the component it names (if it exists).
-function tagUnderCursor(document, position, log) {
+function tagUnderCursor(document, position, projects) {
     const tag = componentTagAt(document.getText(), document.offsetAt(position));
     if (!tag) return null;
-    const project = projectOf(document, log);
+    const project = projectOf(document, projects);
     if (!project) return null;
     const range = new vscode.Range(document.positionAt(tag.start), document.positionAt(tag.end));
     const component = project.components.find((c) => c.name === tag.name);
     return { ...project, tag, range, component };
 }
 
-function completionProvider(log) {
+function completionProvider(projects) {
     return {
         provideCompletionItems(document, position) {
             const start = componentNameStart(document.getText(), document.offsetAt(position));
             if (start < 0) return undefined;
-            const project = projectOf(document, log);
+            const project = projectOf(document, projects);
             if (!project) return undefined;
 
             // A component inside itself would never finish rendering.
@@ -70,10 +65,10 @@ function completionProvider(log) {
 }
 
 // Cmd+Click or F12 on `<Blog.PostCard` opens components/blog/PostCard.alo.
-function definitionProvider(log) {
+function definitionProvider(projects) {
     return {
         provideDefinition(document, position) {
-            const found = tagUnderCursor(document, position, log);
+            const found = tagUnderCursor(document, position, projects);
             if (!found?.component) return undefined;
             return [
                 {
@@ -106,10 +101,10 @@ function propsText(found) {
 }
 
 // Hovering a component tag shows its file and the props it reads.
-function hoverProvider(log) {
+function hoverProvider(projects) {
     return {
         provideHover(document, position) {
-            const found = tagUnderCursor(document, position, log);
+            const found = tagUnderCursor(document, position, projects);
             if (!found) return undefined;
 
             const markdown = new vscode.MarkdownString();
@@ -127,11 +122,50 @@ function hoverProvider(log) {
     };
 }
 
-function registerComponentFeatures(context, log) {
+// Inside `<Profile |>`, suggests the props Profile reads, written as attributes: `full-name="|"`.
+function propCompletionProvider(projects) {
+    return {
+        provideCompletionItems(document, position) {
+            const context = componentTagContext(document.getText(), document.offsetAt(position));
+            if (!context) return undefined;
+            const project = projectOf(document, projects);
+            const component = project?.components.find((c) => c.name === context.name);
+            if (!component) return undefined;
+
+            let usage;
+            try {
+                usage = componentProps(readFile(path.join(project.root, component.file)), component.file, project.core);
+            } catch {
+                return undefined;
+            }
+
+            const written = new Set(context.written);
+            const range = new vscode.Range(document.positionAt(context.start), position);
+            return usage.props
+                .filter((prop) => !written.has(attributeName(prop)))
+                .map((prop) => {
+                    const attribute = attributeName(prop);
+                    const item = new vscode.CompletionItem(
+                        { label: attribute, description: `props.${prop}` },
+                        vscode.CompletionItemKind.Property,
+                    );
+                    item.insertText = new vscode.SnippetString().appendText(`${attribute}="`).appendTabstop(1).appendText('"');
+                    item.range = range;
+                    item.detail = `Prop of <${context.name}>`;
+                    item.sortText = '0' + attribute;
+                    return item;
+                });
+        },
+    };
+}
+
+function registerComponentFeatures(context, projects) {
     context.subscriptions.push(
-        vscode.languages.registerCompletionItemProvider('alo', completionProvider(log), '<', '.'),
-        vscode.languages.registerDefinitionProvider('alo', definitionProvider(log)),
-        vscode.languages.registerHoverProvider('alo', hoverProvider(log)),
+        vscode.languages.registerCompletionItemProvider('alo', completionProvider(projects), '<', '.'),
+        // A space after `<Card` opens the list of props right away.
+        vscode.languages.registerCompletionItemProvider('alo', propCompletionProvider(projects), ' '),
+        vscode.languages.registerDefinitionProvider('alo', definitionProvider(projects)),
+        vscode.languages.registerHoverProvider('alo', hoverProvider(projects)),
     );
 }
 
