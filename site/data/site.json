@@ -1,0 +1,10 @@
+{
+    "name": "Alo for VS Code",
+    "tagline": "Editor support that follows Alo's own rules.",
+    "description": "Highlighting, component and data suggestions, Alo's real errors while you type, quick fixes, and the dev server: all inside VS Code.",
+    "cta": { "label": "Install", "href": "https://marketplace.visualstudio.com/items?itemName=msilabs.alo-vscode" },
+    "github": "https://github.com/msilabs/alo-vscode",
+    "alo": "https://github.com/msilabs/alo",
+    "lang": "en",
+    "url": "https://msilabs.github.io"
+}

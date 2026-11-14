@@ -1,0 +1,29 @@
+<head>
+    <title>Page not found | {{ data.site.name }}</title>
+</head>
+
+<template>
+    <div class="missing container">
+        <p class="code">404</p>
+        <h1>This page does not exist</h1>
+        <a class="button button-primary" href="/">Back to home</a>
+    </div>
+</template>
+
+<style>
+    .missing {
+        display: grid;
+        justify-items: start;
+        gap: 1rem;
+        min-height: 50vh;
+        padding-block: 4rem;
+        align-content: start;
+    }
+
+    .code {
+        color: var(--accent);
+        font-size: 4rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+</style>

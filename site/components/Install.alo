@@ -1,0 +1,76 @@
+<template>
+    <section class="section container" id="install">
+        <div class="section-head">
+            <p class="eyebrow">Install</p>
+            <h2>Ready in a minute</h2>
+        </div>
+
+        <ol class="steps">
+            <li>
+                <h3>Install the extension</h3>
+                <p>Search for <strong>Alo</strong> in the VS Code Extensions view, or use the <a href="{{ data.site.cta.href }}">Marketplace page</a>.</p>
+            </li>
+            <li>
+                <h3>Open an Alo project</h3>
+                <p>Any folder with <code>.alo</code> files works. New projects from <code>alo init</code> already recommend this extension.</p>
+            </li>
+            <li>
+                <h3>Trust the folder</h3>
+                <p>In Restricted Mode, highlighting and suggestions work, but errors, the dev server and builds stay off, because they run the code in your templates.</p>
+            </li>
+        </ol>
+
+        <p class="more">Known limits and settings are in the <a href="{{ data.site.github }}#readme">README</a>. New to Alo? See <a href="{{ data.site.alo }}">the framework</a>.</p>
+    </section>
+</template>
+
+<style>
+    .steps {
+        display: grid;
+        gap: 1.25rem;
+        max-width: var(--reading);
+        margin: 0 auto;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+    }
+
+    .steps li {
+        position: relative;
+        padding: 1.25rem 1.5rem 1.25rem 4rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        counter-increment: step;
+    }
+
+    .steps li::before {
+        content: counter(step);
+        position: absolute;
+        inset: 1.25rem auto auto 1.25rem;
+        display: grid;
+        place-items: center;
+        width: 1.9rem;
+        height: 1.9rem;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-weight: 700;
+    }
+
+    .steps h3 {
+        margin: 0 0 0.3rem;
+        font-size: 1.1rem;
+    }
+
+    .steps p {
+        margin: 0;
+        color: var(--muted);
+    }
+
+    .more {
+        margin-top: 2rem;
+        color: var(--muted);
+        text-align: center;
+    }
+</style>

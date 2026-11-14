@@ -1,0 +1,8 @@
+[
+    { "name": "Alo: New…", "use": "Create a page, layout, component or post, and open it." },
+    { "name": "Alo: Start Dev Server", "use": "Run alo dev in a terminal. The status bar shows its address." },
+    { "name": "Alo: Open Dev Server in Browser", "use": "Open the running dev server." },
+    { "name": "Alo: Build", "use": "Run alo build into dist/." },
+    { "name": "Alo: Open .alo Files as Alo", "use": "Remove a files.associations setting that opens .alo files as HTML." },
+    { "name": "Alo: Show Log", "use": "See which Alo the extension uses for each project." }
+]

@@ -1,0 +1,42 @@
+<template>
+    <section class="section container" id="features">
+        <div class="section-head">
+            <p class="eyebrow">Features</p>
+            <h2>The editor knows your Alo project</h2>
+            <p>The extension runs Alo's own code, so the editor and node alo build always agree.</p>
+        </div>
+
+        <div class="grid">
+            <template for="feature in data.features">
+                <article class="card">
+                    <h3>{{ feature.title }}</h3>
+                    <p>{{ feature.text }}</p>
+                </article>
+            </template>
+        </div>
+    </section>
+</template>
+
+<style>
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+        gap: 1.25rem;
+    }
+
+    .card {
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+    }
+
+    .card h3 {
+        margin-bottom: 0.4rem;
+        font-size: 1.15rem;
+    }
+
+    .card p {
+        color: var(--muted);
+    }
+</style>

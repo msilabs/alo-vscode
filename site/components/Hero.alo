@@ -1,0 +1,88 @@
+<template>
+    <section class="hero container">
+        <p class="eyebrow">VS Code extension</p>
+        <h1>{{ data.site.tagline }}</h1>
+        <p class="lead">{{ data.site.description }}</p>
+        <p class="actions">
+            <a class="button button-primary" href="{{ data.site.cta.href }}">Install from Marketplace</a>
+            <a class="button" href="/#preview">See it work</a>
+        </p>
+        <div class="command">
+            <code>ext install msilabs.alo-vscode</code>
+            <button type="button" class="copy" data-copy="ext install msilabs.alo-vscode">Copy</button>
+        </div>
+    </section>
+</template>
+
+<style>
+    .hero {
+        display: grid;
+        justify-items: center;
+        gap: 0.5rem;
+        padding-block: 4rem 3rem;
+        text-align: center;
+    }
+
+    h1 {
+        max-width: 18ch;
+        margin-block: 0.5rem 1rem;
+        font-size: clamp(2.2rem, 6vw, 3.6rem);
+    }
+
+    .lead {
+        max-width: 38rem;
+        color: var(--muted);
+        font-size: 1.15rem;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .command {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1.25rem;
+        padding: 0.35rem 0.4rem 0.35rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+    }
+
+    .command code {
+        padding: 0;
+        background: none;
+        font-size: 0.9rem;
+    }
+
+    .copy {
+        padding: 0.3rem 0.9rem;
+        border: 0;
+        border-radius: 999px;
+        background: var(--surface-soft);
+        color: var(--text);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+</style>
+
+<script>
+    const button = $el.querySelector('.copy');
+
+    button.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(button.dataset.copy);
+            button.textContent = 'Copied';
+        } catch {
+            button.textContent = 'Press Ctrl+C';
+        }
+        setTimeout(() => {
+            button.textContent = 'Copy';
+        }, 1800);
+    });
+</script>

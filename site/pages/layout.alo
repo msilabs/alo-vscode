@@ -1,0 +1,12 @@
+<head>
+    <meta name="description" content="{{ data.site.description }}">
+    <link rel="icon" href="/favicon.png" type="image/png">
+</head>
+
+<template>
+    <Header />
+    <main>
+        <slot />
+    </main>
+    <Footer />
+</template>

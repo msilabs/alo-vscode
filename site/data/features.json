@@ -1,0 +1,8 @@
+[
+    { "title": "Highlighting", "text": "{{ }}, {{{ }}} and template logic coloured as JavaScript. Component tags coloured like classes. CSS and JS inside style and script blocks." },
+    { "title": "Components", "text": "Type < to get your components, a space to get their props. Cmd/Ctrl+Click a tag to open its file. Hover to see the props it reads." },
+    { "title": "Data suggestions", "text": "data., item., props. and loop variables list real keys and values from your data files. Cmd/Ctrl+Click jumps to the key." },
+    { "title": "Real errors", "text": "Alo checks the project as you type, without saving. You see the same errors and hints as node alo build." },
+    { "title": "Quick fixes", "text": "Rename a misspelled tag or prop, create a missing component, wrap an element in template if, add a missing slot." },
+    { "title": "Pages and layouts", "text": "Each page shows its URL and a button to open it. Tabs read about (page) instead of a row of page.alo." }
+]

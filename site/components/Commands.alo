@@ -1,0 +1,41 @@
+<template>
+    <section class="section container" id="commands">
+        <div class="section-head">
+            <p class="eyebrow">Commands</p>
+            <h2>Everything from the command palette</h2>
+            <p>Press <code>Cmd/Ctrl+Shift+P</code> and type Alo.</p>
+        </div>
+
+        <dl class="list">
+            <template for="command in data.commands">
+                <div class="row">
+                    <dt><code>{{ command.name }}</code></dt>
+                    <dd>{{ command.use }}</dd>
+                </div>
+            </template>
+        </dl>
+    </section>
+</template>
+
+<style>
+    .list {
+        display: grid;
+        gap: 0.75rem;
+        max-width: var(--reading);
+        margin: 0 auto;
+    }
+
+    .row {
+        display: grid;
+        gap: 0.2rem;
+        padding: 1rem 1.25rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+    }
+
+    dd {
+        margin: 0;
+        color: var(--muted);
+    }
+</style>

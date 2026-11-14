@@ -1,0 +1,13 @@
+#!/usr/bin/env node
+try {
+    require('@msilabs/alo/cli');
+} catch (e) {
+    if (
+        e.code === 'MODULE_NOT_FOUND' &&
+        String(e.message).includes('@msilabs/alo')
+    ) {
+        console.error('Alo is not installed. Run `npm install` first.');
+        process.exit(1);
+    }
+    throw e;
+}

@@ -1,0 +1,152 @@
+<template>
+    <section class="section container" id="preview">
+        <div class="section-head">
+            <p class="eyebrow">Preview</p>
+            <h2>Mistakes get a fix, not a guess</h2>
+            <p>Misspell a component and Alo says so while you type, with the right name as the hint.</p>
+        </div>
+
+        <div class="editor">
+            <div class="titlebar">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                <span class="file">about (page)</span>
+            </div>
+            <pre class="code"><code><span class="line"><span class="lens">→ /about/ · Open in browser</span></span>
+<span class="line"><span class="p">&lt;</span><span class="tag">template</span><span class="p">&gt;</span></span>
+<span class="line">    <span class="p">&lt;</span><span class="tag">h1</span><span class="p">&gt;</span><span class="k">\{{</span> <span class="pr">data.site.name</span> <span class="k">}}</span><span class="p">&lt;/</span><span class="tag">h1</span><span class="p">&gt;</span></span>
+<span class="line">    <span class="p">&lt;</span><span class="tag squiggle">Crad</span> <span class="a">title</span><span class="p">=</span><span class="s">"Mission"</span> <span class="p">/&gt;</span></span>
+<span class="line"><span class="p">&lt;/</span><span class="tag">template</span><span class="p">&gt;</span></span></code></pre>
+
+            <div class="problem">
+                <p><strong>Error</strong> Component <code>&lt;Crad&gt;</code> not found. Did you mean <code>&lt;Card&gt;</code>?</p>
+                <p class="fix">Quick fix: Change to <code>&lt;Card&gt;</code></p>
+            </div>
+
+            <div class="statusbar">
+                <span class="remote">&gt;&lt;</span>
+                <span>Alo</span>
+            </div>
+        </div>
+    </section>
+</template>
+
+<style>
+    .editor {
+        overflow: hidden;
+        max-width: 46rem;
+        margin-inline: auto;
+        border: 1px solid #2f2922;
+        border-radius: var(--radius);
+        background: #1b1814;
+        box-shadow: 0 20px 50px rgb(0 0 0 / 30%);
+        color: #f5efe6;
+        font-family: var(--font-mono);
+    }
+
+    .titlebar {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.7rem 1rem;
+        background: #12100d;
+        border-bottom: 1px solid #2f2922;
+    }
+
+    .dot {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 50%;
+        background: #2f2922;
+    }
+
+    .file {
+        margin-inline-start: 0.75rem;
+        padding: 0.15rem 0.7rem;
+        border-top: 2px solid #fbbf3c;
+        font-size: 0.85rem;
+    }
+
+    .code {
+        margin: 0;
+        padding: 1rem 0;
+        overflow-x: auto;
+        font-size: 0.9rem;
+        line-height: 1.7;
+        white-space: normal;
+    }
+
+    .code code {
+        padding: 0;
+        background: none;
+        font-size: inherit;
+    }
+
+    .line {
+        display: block;
+        min-height: 1.7em;
+        padding-inline: 1.5rem;
+        white-space: pre;
+    }
+
+    .lens {
+        color: #aea395;
+        font-size: 0.8rem;
+    }
+
+    .k { color: #b4a5ff; }
+    .s { color: #ebc57f; }
+    .p { color: #8e9cba; }
+    .pr { color: #82c3ff; }
+    .tag { color: #ff9e85; }
+    .a { color: #5fd18f; }
+
+    .squiggle {
+        text-decoration: underline wavy #ff6b6b;
+        text-underline-offset: 4px;
+    }
+
+    .problem {
+        display: grid;
+        gap: 0.4rem;
+        margin: 0 1rem 1rem;
+        padding: 0.8rem 1rem;
+        border: 1px solid #2f2922;
+        border-left: 3px solid #ff6b6b;
+        border-radius: var(--radius-small);
+        background: #12100d;
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+
+    .problem code {
+        background: #241f19;
+        color: inherit;
+    }
+
+    .problem strong {
+        margin-inline-end: 0.5rem;
+        color: #ff6b6b;
+    }
+
+    .fix {
+        color: #fcd27a;
+    }
+
+    .statusbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-inline-end: 1rem;
+        border-top: 1px solid #2f2922;
+        background: #12100d;
+        color: #aea395;
+        font-size: 0.8rem;
+    }
+
+    .remote {
+        padding: 0.35rem 0.8rem;
+        background: #fbbf3c;
+        color: #1f1a14;
+        font-weight: 700;
+    }
+</style>
