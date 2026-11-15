@@ -31,6 +31,7 @@ async function check(name, fn) {
 async function open(file) {
     const document = await vscode.workspace.openTextDocument(path.isAbsolute(file) ? file : path.join(WS, file));
     const editor = await vscode.window.showTextDocument(document);
+    await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
     await sleep(250);
     return editor;
 }
@@ -1026,17 +1027,20 @@ async function commandsAndCodeLens() {
         return list.map((lens) => lens.command?.title).filter(Boolean);
     };
 
+    // One page for every post in data/blog, and the blog's own list page.
+    const posts = () => fs.readdirSync(path.join(WS, 'data', 'blog')).length;
+
     await check('CodeLens: a page shows its URL', async () => {
         const titles = await lenses('pages/(site)/about/page.alo');
         return { ok: titles.includes('→ /about/') && titles.includes('Start dev server and open'), text: titles };
     });
     await check('CodeLens: a [slug] page shows its URL pattern and page count', async () => {
         const titles = await lenses('pages/(site)/blog/[slug]/page.alo');
-        return { ok: titles.includes('→ /blog/:slug/ · 6 pages'), text: titles };
+        return { ok: titles.includes(`→ /blog/:slug/ · ${posts()} pages`), text: titles };
     });
     await check('CodeLens: a layout shows how many pages it wraps', async () => {
         const titles = await lenses('pages/(site)/blog/layout.alo');
-        return { ok: titles.includes('Wraps 7 pages'), text: titles };
+        return { ok: titles.includes(`Wraps ${posts() + 1} pages`), text: titles };
     });
     await check('CodeLens: not-found.alo is /404.html', async () => {
         const titles = await lenses('pages/not-found.alo');
