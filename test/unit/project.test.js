@@ -63,6 +63,20 @@ test('an unsupported major version falls back to the bundled core', () => {
     assert.equal(core.skipped.version, '2.0.0');
 });
 
+test('Alo older than 1.2.1 falls back to the bundled core', () => {
+    const root = tempProject({ 'node_modules/@msilabs/alo/package.json': '{"version":"1.2.0"}' });
+    fs.mkdirSync(path.join(root, 'node_modules', '@msilabs', 'alo', 'core'));
+    const core = loadCore(root);
+    assert.equal(core.source, 'bundled');
+    assert.equal(core.skipped.version, '1.2.0');
+});
+
+test('isSupportedVersion', () => {
+    const { isSupportedVersion } = require('../../lib/project');
+    for (const v of ['1.2.1', '1.2.2', '1.3.0', '1.10.0']) assert.equal(isSupportedVersion(v), true, v);
+    for (const v of ['1.1.0', '1.2.0', '2.0.0', '0.9.9', '1.2', 'x', undefined]) assert.equal(isSupportedVersion(v), false, String(v));
+});
+
 test('listComponents uses dot notation for folders', () => {
     const root = tempProject({
         'components/Card.alo': '<template></template>',

@@ -2,6 +2,7 @@
 
 const { spawn } = require('child_process');
 const vscode = require('vscode');
+const { childEnv } = require('../lib/child-env');
 
 // Runs Alo's CLI (`alo dev`, `alo build`) for a project in a terminal panel of its own.
 // VS Code's own Node runs it (ELECTRON_RUN_AS_NODE), so nothing has to be installed.
@@ -20,7 +21,7 @@ function runAlo({ name, core, root, args, onOutput, onExit }) {
         open() {
             child = spawn(process.execPath, [core.bin, ...args], {
                 cwd: root,
-                env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', NO_COLOR: '1' },
+                env: childEnv(),
             });
             write.fire(`> alo ${args.join(' ')}\r\n\r\n`);
             const show = (data) => {

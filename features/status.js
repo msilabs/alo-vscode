@@ -55,7 +55,7 @@ function registerStatus(context, log, projects) {
             reported.add(key);
             log.info(`Project ${root}: using Alo ${core.version} from ${core.dir}`);
             if (core.skipped) {
-                log.warn(`Ignored Alo ${core.skipped.version} in ${core.skipped.dir}: this extension supports Alo 1.x.`);
+                log.warn(`Ignored Alo ${core.skipped.version} in ${core.skipped.dir}: this extension uses Alo 1.2.1 or newer, because older versions have known security problems (unsafe expressions, raw HTML in Markdown). Update with `npm install @msilabs/alo@latest`; the copy that comes with the extension is used meanwhile.`);
             }
         }
     }

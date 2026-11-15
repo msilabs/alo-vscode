@@ -56,11 +56,18 @@ The extension uses Alo's own code to understand your project, so the editor foll
 
 ## Which Alo it uses
 
-If the project has `node_modules/@msilabs/alo` (Alo 1.x), the extension uses that, so the editor and your builds always agree. Otherwise it uses the copy of Alo that comes with the extension.
+If the project has `node_modules/@msilabs/alo` (Alo 1.2.1 or newer; older versions have known security problems), the extension uses that, so the editor and your builds always agree. Otherwise it uses the copy of Alo that comes with the extension.
 
 ## Restricted Mode
 
 In a folder you have not trusted, the extension does not check for errors and does not run the dev server or builds, because those run the code in your templates. It also does not load the project's own Alo. Highlighting, suggestions, hovers and creating files still work. Trust the folder to turn everything on.
+
+## Security and privacy
+
+- **Code it runs:** only in trusted folders, `alo dev` and `alo build` through `child_process.spawn` with an argument array (never a shell string), using VS Code's own Node.
+- **Expressions and Markdown:** Alo's expressions are read by a parser, never compiled with `new Function` or `eval`. Markdown escapes raw HTML and keeps only safe link schemes.
+- **Environment variables:** the extension reads only the ones it hands to `alo dev` and `alo build`: only `PATH`, `HOME`, `USERPROFILE`, `SystemRoot`, `TEMP`, `TMP`, `TMPDIR`, `LANG` and `LC_ALL`, plus `ELECTRON_RUN_AS_NODE` and `NO_COLOR` set by the extension.
+- **Network:** the extension makes no outgoing network calls and sends no telemetry. The only network use is the dev server of `alo dev`, which listens on `localhost` (default port 3000, or the next free one). The extension reads its address from the server's output and opens it in your browser when you ask.
 
 ## Projects made with `alo init`
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.2
+
+Security fixes, after Socket.dev flagged two risks in 0.1.1.
+
+- The copy of Alo that comes with the extension is now Alo 1.2.2:
+    - Expressions in `{{ }}`, `if`, `else-if` and `for` no longer run through `new Function`. Alo reads them with its own parser and evaluator, with an allowlist of globals and methods. `constructor`, `__proto__`, `prototype`, `process`, `require` and `globalThis` are blocked. Error messages are fixed text; no expression is run a second time to find an error.
+    - Markdown no longer passes raw HTML through. It is escaped by default. Links keep only `http`, `https` and `mailto`; images keep only `http` and `https`. Attribute values are always escaped.
+    - `node:vm` is no longer used for `<script>`.
+- `alo dev` and `alo build` started from the editor now get only the environment variables they need, not the editor's whole environment.
+- A project's own `node_modules/@msilabs/alo` is used only from Alo 1.2.1, the first version with these fixes. An older one is ignored with a warning in the log, and the bundled copy is used instead.
+- New tests for the XSS and expression payloads against the bundled copy.
+- README: what the extension runs, which environment variables it reads, and that it makes no network calls of its own.
+
 ## 0.1.1
 
 - The copy of Alo that comes with the extension is now Alo 1.1.0:
