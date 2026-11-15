@@ -9,6 +9,6 @@
         "build": "alo build"
     },
     "devDependencies": {
-        "@msilabs/alo": "^1.2.0"
+        "@msilabs/alo": "^1.2.2"
     }
 }
