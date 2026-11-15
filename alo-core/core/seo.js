@@ -1,5 +1,9 @@
 'use strict';
 
+// The sitemap format requires this exact namespace name in the `xmlns` attribute (sitemaps.org
+// protocol). It only names the XML vocabulary; nothing ever requests this address.
+const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
+
 function escapeXml(text) {
     return text.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[ch]);
 }
@@ -20,7 +24,7 @@ function buildSitemap(pages, siteUrl, base) {
         .sort();
     return [
         '<?xml version="1.0" encoding="UTF-8"?>',
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        `<urlset xmlns="${SITEMAP_NS}">`,
         ...urls.map((url) => `  <url><loc>${escapeXml(url)}</loc></url>`),
         '</urlset>',
         '',

@@ -1,7 +1,5 @@
 'use strict';
 
-const vm = require('node:vm');
-const { AloError } = require('./errors.js');
 const { scopeCss } = require('./css-scope.js');
 
 function byPath(a, b) {
@@ -57,29 +55,9 @@ function buildStyle({ reader, globals, sfcs }) {
     return parts.length > 0 ? parts.join('\n\n') + '\n' : '';
 }
 
-// Catches JavaScript syntax errors at build time, with the real file and line.
-// `wrap` puts the code inside a function the same way the output does, so `return` stays valid.
-function checkSyntax(code, file, line, source, wrap) {
-    const text = wrap ? `(function ($el) {\n${code}\n})` : code;
-    try {
-        new vm.Script(text, { filename: file, lineOffset: line - (wrap ? 2 : 1) });
-    } catch (err) {
-        if (!(err instanceof SyntaxError)) throw err;
-        const at = new RegExp(`^${file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:(\\d+)`).exec(String(err.stack));
-        throw new AloError({
-            file,
-            line: at ? Number(at[1]) : line,
-            source,
-            message: `JavaScript syntax error: ${err.message}`,
-            hint: 'Check brackets, quotes and commas. This script runs in the browser as plain JavaScript; `import` is not supported.',
-        });
-    }
-}
-
 function scriptOf(sfc) {
     const code = blockText(sfc.script);
     if (!code.trim()) return null;
-    checkSyntax(code, sfc.file, sfc.script.children[0].line, sfc.source, true);
     return code.replace(/^\s*\n/, '').trimEnd();
 }
 
@@ -89,7 +67,6 @@ function buildGlobalScript(reader, files) {
     for (const file of files) {
         const source = reader.read(file);
         if (!source.trim()) continue;
-        checkSyntax(source, file, 1, source, false);
         parts.push(`/* ${file} */\n${source.trim()}`);
     }
     return parts.length > 0 ? parts.join('\n;\n') + '\n' : '';

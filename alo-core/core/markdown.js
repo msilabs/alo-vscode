@@ -2,6 +2,10 @@
 
 // A CommonMark-like Markdown renderer with a few GFM extras (tables, ~~strikethrough~~).
 // Not supported, so they stay literal text: reference-style links, footnotes, task lists, emoji, math.
+//
+// Safe by default: raw HTML in the text is escaped, and links and images only keep URLs with an
+// allowed scheme. `allowHtml: true` lets HTML through, but only after the sanitizer below has
+// removed everything that is not on its allowlists.
 
 const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 const ASCII_PUNCT = /[!-/:-@[-`{-~]/;
@@ -617,7 +621,7 @@ function parseInline(text) {
                     buffer += decoded;
                 } else {
                     flush();
-                    nodes.push({ type: 'html', value: entity[0] });
+                    nodes.push({ type: 'entity', value: entity[0] });
                 }
                 i += entity[0].length;
                 continue;
@@ -705,7 +709,137 @@ function plainText(nodes) {
         .join('');
 }
 
-function renderInline(nodes) {
+// ---------------------------------------------------------------- safety
+
+const LINK_SCHEMES = ['http', 'https', 'mailto'];
+const IMAGE_SCHEMES = ['http', 'https'];
+
+// Browsers ignore leading whitespace and control characters, and tabs or newlines inside the
+// scheme (`java\nscript:`), so all of them are removed before the scheme is read. The URL is
+// checked a second time with its percent-escapes decoded, so `%20javascript:` does not slip by.
+// A URL without a scheme (`/a`, `a/b`, `#x`, `?q`, `//host`) is relative and always fine.
+function hasAllowedScheme(url, schemes) {
+    const probe = url.replace(/[\u0000-\u0020\u007f-\u00a0\u1680\u180e\u2000-\u200d\u2028\u2029\u202f\u205f\u2060\u3000\ufeff]/g, '');
+    const scheme = /^([A-Za-z][A-Za-z0-9+.-]*):/.exec(probe);
+    return scheme === null || schemes.includes(scheme[1].toLowerCase());
+}
+
+function isSafeUrl(url, schemes) {
+    if (!hasAllowedScheme(url, schemes)) return false;
+    try {
+        return hasAllowedScheme(decodeURIComponent(url), schemes);
+    } catch {
+        return true;
+    }
+}
+
+const ALLOWED_TAGS = new Set(
+    ('a abbr b blockquote br caption cite code col colgroup dd del details div dl dt em figcaption figure ' +
+        'h1 h2 h3 h4 h5 h6 hr i img ins kbd li mark ol p pre q s samp small span strong sub summary sup ' +
+        'table tbody td tfoot th thead time tr u ul var wbr').split(' '),
+);
+const VOID_TAGS = new Set(['br', 'col', 'hr', 'img', 'wbr']);
+// Removed together with everything inside them.
+const DROPPED_WITH_CONTENT = new Set(['script', 'style', 'iframe', 'object', 'embed', 'textarea', 'noscript', 'template', 'svg', 'math', 'title']);
+
+const GLOBAL_ATTRIBUTES = new Set(['id', 'class', 'title', 'lang', 'dir', 'role', 'align']);
+const TAG_ATTRIBUTES = {
+    a: { href: LINK_SCHEMES, rel: null },
+    img: { src: IMAGE_SCHEMES, alt: null, width: null, height: null, loading: null },
+    td: { colspan: null, rowspan: null },
+    th: { colspan: null, rowspan: null, scope: null },
+    ol: { start: null, reversed: null },
+    time: { datetime: null },
+    details: { open: null },
+    blockquote: { cite: IMAGE_SCHEMES },
+    q: { cite: IMAGE_SCHEMES },
+    del: { cite: IMAGE_SCHEMES, datetime: null },
+    ins: { cite: IMAGE_SCHEMES, datetime: null },
+};
+
+const HTML_OPEN_TAG = new RegExp(OPEN_TAG, 'y');
+const HTML_CLOSE_TAG = new RegExp(CLOSE_TAG, 'y');
+const HTML_IGNORED = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<\?[\s\S]*?\?>|<![A-Za-z][^>]*>/y;
+const HTML_ATTRIBUTE = /\s+([A-Za-z_:][A-Za-z0-9_.:-]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^"'=<>`\x00-\x20]+)))?/g;
+
+function decodeEntities(text) {
+    return text.replace(new RegExp(ENTITY.source, 'g'), (whole, body) => decodeEntity(body) ?? whole);
+}
+
+function sanitizeAttributes(tag, source) {
+    const allowed = TAG_ATTRIBUTES[tag] ?? {};
+    let out = '';
+    for (const match of source.matchAll(HTML_ATTRIBUTE)) {
+        const name = match[1].toLowerCase();
+        const raw = match[2] ?? match[3] ?? match[4];
+        const known = GLOBAL_ATTRIBUTES.has(name) || Object.hasOwn(allowed, name) || name.startsWith('aria-') || name.startsWith('data-');
+        if (!known) continue;
+        if (raw === undefined) {
+            if (!Object.hasOwn(allowed, name) || allowed[name] !== null) continue;
+            out += ` ${name}`;
+            continue;
+        }
+        const value = decodeEntities(raw);
+        if (Object.hasOwn(allowed, name) && allowed[name] !== null && !isSafeUrl(value, allowed[name])) continue;
+        out += ` ${name}="${escapeHtml(value)}"`;
+    }
+    return out;
+}
+
+// Keeps allowed tags with allowed attributes, drops everything else. Text stays as it is, except
+// that a `<` which does not start an allowed tag is escaped.
+function sanitizeHtml(html) {
+    let out = '';
+    let i = 0;
+    while (i < html.length) {
+        const start = html.indexOf('<', i);
+        if (start < 0) {
+            out += html.slice(i);
+            break;
+        }
+        out += html.slice(i, start);
+
+        HTML_IGNORED.lastIndex = start;
+        const ignored = HTML_IGNORED.exec(html);
+        if (ignored) {
+            i = start + ignored[0].length;
+            continue;
+        }
+
+        HTML_OPEN_TAG.lastIndex = start;
+        const open = HTML_OPEN_TAG.exec(html);
+        if (open) {
+            const tag = /^<([A-Za-z][A-Za-z0-9-]*)/.exec(open[0])[1].toLowerCase();
+            i = start + open[0].length;
+            if (DROPPED_WITH_CONTENT.has(tag)) {
+                const close = new RegExp(`</${tag}\\s*>`, 'i').exec(html.slice(i));
+                i = close ? i + close.index + close[0].length : html.length;
+            } else if (ALLOWED_TAGS.has(tag)) {
+                out += `<${tag}${sanitizeAttributes(tag, open[0].slice(tag.length + 1))}${VOID_TAGS.has(tag) ? ' /' : ''}>`;
+            }
+            continue;
+        }
+
+        HTML_CLOSE_TAG.lastIndex = start;
+        const close = HTML_CLOSE_TAG.exec(html);
+        if (close) {
+            const tag = /^<\/([A-Za-z][A-Za-z0-9-]*)/.exec(close[0])[1].toLowerCase();
+            if (ALLOWED_TAGS.has(tag) && !VOID_TAGS.has(tag)) out += `</${tag}>`;
+            i = start + close[0].length;
+            continue;
+        }
+
+        out += '&lt;';
+        i = start + 1;
+    }
+    return out;
+}
+
+function renderHtml(html, options) {
+    return options.allowHtml ? sanitizeHtml(html) : escapeHtml(html);
+}
+
+function renderInline(nodes, options) {
     let out = '';
     for (const node of nodes) {
         switch (node.type) {
@@ -716,6 +850,9 @@ function renderInline(nodes) {
                 out += `<code>${escapeHtml(node.value)}</code>`;
                 break;
             case 'html':
+                out += renderHtml(node.value, options);
+                break;
+            case 'entity':
                 out += node.value;
                 break;
             case 'softbreak':
@@ -727,21 +864,29 @@ function renderInline(nodes) {
             case 'em':
             case 'strong':
             case 'del':
-                out += `<${node.type}>${renderInline(node.children)}</${node.type}>`;
+                out += `<${node.type}>${renderInline(node.children, options)}</${node.type}>`;
                 break;
             case 'link':
-                out += `<a href="${escapeHtml(node.href)}"${node.title === null ? '' : ` title="${escapeHtml(node.title)}"`}>${renderInline(node.children)}</a>`;
+                if (isSafeUrl(node.href, LINK_SCHEMES)) {
+                    out += `<a href="${escapeHtml(node.href)}"${node.title === null ? '' : ` title="${escapeHtml(node.title)}"`}>${renderInline(node.children, options)}</a>`;
+                } else {
+                    out += renderInline(node.children, options);
+                }
                 break;
             case 'image':
-                out += `<img src="${escapeHtml(node.href)}" alt="${escapeHtml(plainText(node.children))}"${node.title === null ? '' : ` title="${escapeHtml(node.title)}"`} />`;
+                if (isSafeUrl(node.href, IMAGE_SCHEMES)) {
+                    out += `<img src="${escapeHtml(node.href)}" alt="${escapeHtml(plainText(node.children))}"${node.title === null ? '' : ` title="${escapeHtml(node.title)}"`} />`;
+                } else {
+                    out += escapeHtml(plainText(node.children));
+                }
                 break;
         }
     }
     return out;
 }
 
-function inline(text) {
-    return renderInline(parseInline(text.replace(/^[ \t]+/gm, '').replace(/[ \t]+$/, '')));
+function inline(text, options) {
+    return renderInline(parseInline(text.replace(/^[ \t]+/gm, '').replace(/[ \t]+$/, '')), options);
 }
 
 // ---------------------------------------------------------------- render
@@ -768,10 +913,10 @@ function renderBlocks(blocks, out, options, tight) {
                 break;
             case 'paragraph':
                 if (tight) {
-                    out.html += inline(block.text);
+                    out.html += inline(block.text, options);
                 } else {
                     cr();
-                    out.html += `<p>${inline(block.text)}</p>`;
+                    out.html += `<p>${inline(block.text, options)}</p>`;
                     cr();
                 }
                 break;
@@ -785,7 +930,7 @@ function renderBlocks(blocks, out, options, tight) {
                     id = ` id="${escapeHtml(count === 1 ? base : `${base}-${count}`)}"`;
                 }
                 cr();
-                out.html += `<h${block.level}${id}>${renderInline(nodes)}</h${block.level}>`;
+                out.html += `<h${block.level}${id}>${renderInline(nodes, options)}</h${block.level}>`;
                 cr();
                 break;
             }
@@ -798,7 +943,7 @@ function renderBlocks(blocks, out, options, tight) {
             }
             case 'html':
                 cr();
-                out.html += block.text;
+                out.html += options.allowHtml ? sanitizeHtml(block.text) : `<p>${escapeHtml(block.text)}</p>`;
                 cr();
                 break;
             case 'hr':
@@ -833,7 +978,7 @@ function renderBlocks(blocks, out, options, tight) {
             case 'table': {
                 const cell = (tag, text, i) => {
                     const align = block.aligns[i];
-                    return `<${tag}${align ? ` style="text-align: ${align}"` : ''}>${inline(text)}</${tag}>\n`;
+                    return `<${tag}${align ? ` style="text-align: ${align}"` : ''}>${inline(text, options)}</${tag}>\n`;
                 };
                 cr();
                 out.html += '<table>\n<thead>\n<tr>\n' + block.header.map((text, i) => cell('th', text, i)).join('') + '</tr>\n</thead>\n';
@@ -853,11 +998,12 @@ function renderBlocks(blocks, out, options, tight) {
 }
 
 // options.headingIds: add an `id` to every heading (on by default; the CommonMark tests turn it off).
-function renderMarkdown(markdown, { headingIds = true } = {}) {
+// options.allowHtml: let HTML in the text through, sanitized (off by default: HTML is escaped).
+function renderMarkdown(markdown, { headingIds = true, allowHtml = false } = {}) {
     const lines = markdown.replace(/\r\n?/g, '\n').replace(/\0/g, '\uFFFD').split('\n').map(expandLeadingTabs);
     if (lines[lines.length - 1] === '') lines.pop();
     const out = { html: '' };
-    renderBlocks(parseBlocks(lines), out, { headingIds, ids: new Map() }, false);
+    renderBlocks(parseBlocks(lines), out, { headingIds, allowHtml, ids: new Map() }, false);
     return out.html;
 }
 

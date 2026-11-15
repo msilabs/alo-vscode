@@ -6,7 +6,10 @@ const { AloError, suggest } = require('../core/errors.js');
 const log = require('./log.js');
 const { version } = require('../package.json');
 
-const TEMPLATE_DIR = path.join(__dirname, '..', 'templates', 'init');
+const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
+// Template name → folder in templates/. The default keeps its old folder name.
+const TEMPLATES = { default: 'init', blank: 'blank', portfolio: 'portfolio', docs: 'docs', landing: 'landing' };
+const TEMPLATE_NAMES = Object.keys(TEMPLATES);
 // A folder holding only these still counts as empty, so `git init` before `alo init` is fine.
 const IGNORABLE = new Set(['.git', '.DS_Store', 'Thumbs.db']);
 
@@ -66,7 +69,22 @@ function writeNew(file, contents) {
     fs.writeFileSync(file, contents);
 }
 
-function init(cwd, folder = '.') {
+function templateDir(template) {
+    if (Object.hasOwn(TEMPLATES, template)) return path.join(TEMPLATES_DIR, TEMPLATES[template]);
+
+    const list = `Templates: ${TEMPLATE_NAMES.map((name) => `\`${name}\``).join(', ')}.`;
+    if (/[/:]/.test(template)) {
+        throw new AloError({ message: 'Templates from a repository are not supported.', hint: list });
+    }
+    const close = suggest(template, TEMPLATE_NAMES);
+    throw new AloError({
+        message: `There is no template \`${template}\`.`,
+        hint: (close ? `Did you mean \`${close}\`?\n` : '') + list,
+    });
+}
+
+function init(cwd, folder = '.', template = 'default') {
+    const source = templateDir(template);
     const target = path.resolve(cwd, folder);
     if (fs.existsSync(target)) {
         if (!fs.statSync(target).isDirectory()) {
@@ -82,7 +100,11 @@ function init(cwd, folder = '.') {
     }
 
     fs.mkdirSync(target, { recursive: true });
-    fs.cpSync(TEMPLATE_DIR, target, { recursive: true });
+    fs.cpSync(source, target, { recursive: true });
+    // One AGENTS.md for every template; it lives in the default one.
+    if (template !== 'default') {
+        fs.copyFileSync(path.join(TEMPLATES_DIR, TEMPLATES.default, 'AGENTS.md'), path.join(target, 'AGENTS.md'));
+    }
     writeNew(path.join(target, 'alo'), ROOT_SCRIPT);
     fs.chmodSync(path.join(target, 'alo'), 0o755);
     writeNew(path.join(target, 'package.json'), packageJson(packageName(target)));
@@ -96,6 +118,7 @@ function init(cwd, folder = '.') {
     if (relative) steps.push(`cd ${relative.includes(' ') ? JSON.stringify(relative) : relative}`);
     steps.push('npm install', 'node alo dev');
     log.success(`Created a new Alo project: ${relative || '.'}`);
+    if (template !== 'default') log.info(`  Template: ${template}`);
     log.info(`\nNext steps:\n${steps.map((step) => '  ' + step).join('\n')}\n`);
 }
 
@@ -277,4 +300,4 @@ function create(cwd, args) {
     log.dim(`  ${note}`);
 }
 
-module.exports = { init, create, plan, packageName };
+module.exports = { init, create, plan, packageName, TEMPLATES, TEMPLATE_NAMES };

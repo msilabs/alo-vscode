@@ -7,7 +7,7 @@ if (nodeMajor < MIN_NODE_MAJOR) {
     process.stderr.write(
         '✖ Error: Alo needs Node.js ' + MIN_NODE_MAJOR + ' or newer. ' +
             'You have v' + process.versions.node + '.\n\n' +
-            '  Hint: install a current LTS version from https://nodejs.org\n',
+            '  Hint: install a current LTS version of Node.js.\n',
     );
     process.exit(1);
 }
@@ -15,20 +15,32 @@ if (nodeMajor < MIN_NODE_MAJOR) {
 const { AloError, suggest } = require('../core/errors.js');
 const log = require('./log.js');
 const { version } = require('../package.json');
+const { TEMPLATE_NAMES } = require('./scaffold.js');
 
 const COMMANDS = ['init', 'dev', 'build', 'new'];
 const FLAGS_BY_COMMAND = {
-    init: [],
+    init: ['template'],
     dev: ['port', 'base'],
     build: ['base'],
     new: [],
 };
-const VALUE_FLAGS = ['port', 'base'];
+const VALUE_FLAGS = ['port', 'base', 'template'];
+const FLAG_EXAMPLES = {
+    port: '`--port 3000`',
+    base: '`--base /my-repo/`',
+    template: '`--template portfolio`',
+};
+const FLAG_COMMANDS = {
+    port: '`--port` only works with `alo dev`.',
+    base: '`--base` only works with `alo dev` and `alo build`.',
+    template: '`--template` only works with `alo init`.',
+};
 
 const HELP = `Alo — a lightweight static web framework (v${version})
 
 Usage:
   alo init [folder]                  create a new project
+           [--template name]         ${TEMPLATE_NAMES.join(', ')}
   alo dev [--port 3000] [--base /]   dev server with live reload
   alo build [--base /]               production build into dist/
   alo new page blog/first-post       pages/blog/first-post/page.alo
@@ -72,9 +84,7 @@ function parseArgs(argv) {
             const close = suggest(name, [...VALUE_FLAGS, 'help', 'version']);
             throw new AloError({
                 message: `Unknown flag \`${arg}\`.`,
-                hint: close
-                    ? `Did you mean \`--${close}\`?`
-                    : 'Alo only has `--port` and `--base`. Run `alo --help` for everything.',
+                hint: close ? `Did you mean \`--${close}\`?` : 'Run `alo --help` for everything.',
             });
         }
 
@@ -83,7 +93,7 @@ function parseArgs(argv) {
             if (value === undefined || value.startsWith('--')) {
                 throw new AloError({
                     message: `\`--${name}\` needs a value.`,
-                    hint: name === 'port' ? 'For example: `--port 3000`' : 'For example: `--base /my-repo/`',
+                    hint: `For example: ${FLAG_EXAMPLES[name]}`,
                 });
             }
             i++;
@@ -100,10 +110,7 @@ function validateFlags(command, flags) {
         if (!FLAGS_BY_COMMAND[command].includes(name)) {
             throw new AloError({
                 message: `\`--${name}\` does not work with \`alo ${command}\`.`,
-                hint:
-                    name === 'port'
-                        ? '`--port` only works with `alo dev`.'
-                        : '`--base` only works with `alo dev` and `alo build`.',
+                hint: FLAG_COMMANDS[name],
             });
         }
     }
@@ -127,7 +134,7 @@ async function runCommand(command, args, flags) {
         return;
     }
     if (command === 'init') {
-        require('./scaffold.js').init(process.cwd(), args[0]);
+        require('./scaffold.js').init(process.cwd(), args[0], flags.template);
         return;
     }
     if (command === 'new') {
