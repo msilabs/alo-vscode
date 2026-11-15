@@ -56,7 +56,7 @@ const PACKAGED = process.argv.includes('--packaged');
 let developmentPath = ROOT;
 if (PACKAGED) {
     const vsix = fs.readdirSync(ROOT).filter((f) => f.endsWith('.vsix')).sort().pop();
-    if (!vsix) throw new Error('No .vsix here: run `npx @vscode/vsce package` first.');
+    if (!vsix) throw new Error('No .vsix here: run `npm run package` first.');
     const extensions = path.join(TEMP, 'extensions-packaged');
     fs.rmSync(extensions, { recursive: true, force: true });
     // `bin/code` is VS Code's command line; the app binary itself would just open a window.
