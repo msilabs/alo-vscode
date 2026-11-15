@@ -8,7 +8,7 @@ jobs:
         runs-on: ubuntu-latest
         permissions:
             id-token: write
-            contents: read
+            contents: write
         steps:
             - uses: actions/checkout@v7
             - uses: actions/setup-node@v7
@@ -24,5 +24,18 @@ jobs:
             # Some tests use Alo's site project, from the Alo repo next to this one.
             - run: git clone --depth 1 https://github.com/msilabs/alo.git ../alo || echo "Alo repo not available; tests that need it are skipped."
             - run: npm test
+            - name: Package
+              run: npx @vscode/vsce package
             - name: Publish to Visual Studio Marketplace
-              run: npx @vscode/vsce publish --oidc
+              run: npx @vscode/vsce publish --oidc --packagePath alo-vscode-${GITHUB_REF_NAME#v}.vsix
+            # Attach the same .vsix to the GitHub release. If the release is not made yet, make it.
+            - name: Attach the .vsix to the GitHub release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  FILE=alo-vscode-${GITHUB_REF_NAME#v}.vsix
+                  if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+                    gh release upload "$GITHUB_REF_NAME" "$FILE" --clobber
+                  else
+                    gh release create "$GITHUB_REF_NAME" "$FILE" --title "$GITHUB_REF_NAME" --notes "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md)."
+                  fi
