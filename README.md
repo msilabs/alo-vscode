@@ -46,7 +46,7 @@ The extension uses Alo's own code to understand your project, so the editor foll
 | Command | What it does |
 | --- | --- |
 | Alo: New… | Creates a page, layout, component or post, like `alo new`, and opens it |
-| Alo: Start Dev Server / Stop Dev Server | Runs `alo dev` in a terminal; the status bar shows its address |
+| Alo: Start Dev Server / Stop Dev Server | Runs `alo dev` (or `adhar dev` in an Adhar full stack project) in a terminal; the status bar shows its address |
 | Alo: Open Dev Server in Browser | Opens the running dev server |
 | Alo: Build | Runs `alo build` into `dist/` |
 | Alo: Open .alo Files as Alo | Removes a `files.associations` setting that opens `.alo` files as HTML |
@@ -74,6 +74,10 @@ In a folder you have not trusted, the extension does not check for errors and do
 New projects get a `.vscode/extensions.json` that recommends this extension, so VS Code offers to install it.
 
 Projects made with an older `alo init` have `"files.associations": { "*.alo": "html" }` in `.vscode/settings.json`. With that setting, VS Code opens `.alo` files as HTML and this extension cannot help. The extension notices it and offers to remove it; you can also run **Alo: Open .alo Files as Alo**.
+
+## Adhar full stack projects
+
+In a project made with `adhar init --web`, the site is in `web/` and the extension works there as usual: errors, suggestions, CodeLens and **Alo: Build**. **Alo: Start Dev Server** runs `adhar dev` there, so the API and the site share one port, and the status bar shows its address. Run `npm install` in the project first. In other projects it runs `alo dev`.
 
 ## Known limits
 

@@ -4,12 +4,12 @@ const { spawn } = require('child_process');
 const vscode = require('vscode');
 const { childEnv } = require('../lib/child-env');
 
-// Runs Alo's CLI (`alo dev`, `alo build`) for a project in a terminal panel of its own.
+// Runs Alo's CLI (`alo dev`, `alo build`), or another script such as an Adhar project's `adhar dev`, for a project in a terminal panel of its own.
 // VS Code's own Node runs it (ELECTRON_RUN_AS_NODE), so nothing has to be installed.
 //
 // It is a Pseudoterminal: this extension owns the terminal, writes the process output into it,
 // and can read that output, e.g. to find the dev server's URL.
-function runAlo({ name, core, root, args, onOutput, onExit }) {
+function runAlo({ name, core, root, args, script = core.bin, label = 'alo', onOutput, onExit }) {
     const write = new vscode.EventEmitter();
     const close = new vscode.EventEmitter();
     let child = null;
@@ -19,11 +19,11 @@ function runAlo({ name, core, root, args, onOutput, onExit }) {
         onDidWrite: write.event,
         onDidClose: close.event,
         open() {
-            child = spawn(process.execPath, [core.bin, ...args], {
+            child = spawn(process.execPath, [script, ...args], {
                 cwd: root,
                 env: childEnv(),
             });
-            write.fire(`> alo ${args.join(' ')}\r\n\r\n`);
+            write.fire(`> ${label} ${args.join(' ')}\r\n\r\n`);
             const show = (data) => {
                 const text = data.toString();
                 // A terminal needs \r\n to start a new line at the left edge.
@@ -35,7 +35,7 @@ function runAlo({ name, core, root, args, onOutput, onExit }) {
             child.on('error', (err) => write.fire(`\r\n${err.message}\r\n`));
             child.on('exit', (code) => {
                 exited = true;
-                write.fire(`\r\n[alo ${args[0]} stopped${code ? ` with code ${code}` : ''}]\r\n`);
+                write.fire(`\r\n[${label} ${args[0]} stopped${code ? ` with code ${code}` : ''}]\r\n`);
                 onExit?.(code ?? 0);
             });
         },

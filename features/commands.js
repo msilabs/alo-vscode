@@ -2,6 +2,7 @@
 
 const path = require('path');
 const vscode = require('vscode');
+const { findAdharRoot } = require('../lib/adhar');
 const { findProjectRoot } = require('../lib/project');
 const { runAlo } = require('./run-alo');
 
@@ -128,10 +129,14 @@ class DevServers {
             const state = { url: null, stop: null, terminal: null };
             this.running.set(project.root, state);
             let output = '';
+            // In a full stack Adhar project, `adhar dev` runs the API and the site on one port.
+            const adharRoot = findAdharRoot(project.root);
+            const target = adharRoot
+                ? { name: 'Adhar: dev', root: adharRoot, script: path.join(adharRoot, 'adhar'), label: 'adhar' }
+                : { name: 'Alo: dev', root: project.root };
             const run = runAlo({
-                name: 'Alo: dev',
+                ...target,
                 core: project.core,
-                root: project.root,
                 args: ['dev'],
                 onOutput: (text) => {
                     if (state.url) return;
