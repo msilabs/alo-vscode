@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3
+
+No change to what the extension does. This release hardens how it is built and published.
+
+- `@vscode/vsce` is pinned to 4.1.1 in `package-lock.json`, so the release is built with the same tool every time.
+- The publish job tests against the Alo tag that matches the bundled copy, and stops if that tag cannot be cloned.
+- The GitHub token is not kept in the checkout, and CI runs with read-only permissions.
+- The extension's website is built with Alo 1.2.2.
+
 ## 0.1.2
 
 Security fixes, after Socket.dev flagged two risks in 0.1.1, and one new feature.
