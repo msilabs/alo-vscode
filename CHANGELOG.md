@@ -2,7 +2,9 @@
 
 ## 0.1.2
 
-Security fixes, after Socket.dev flagged two risks in 0.1.1.
+Security fixes, after Socket.dev flagged two risks in 0.1.1, and one new feature.
+
+- In a project made with `adhar init --web`, **Alo: Start Dev Server** runs `adhar dev` from the project root, so `/api` works while you edit the site.
 
 - The copy of Alo that comes with the extension is now Alo 1.2.2:
     - Expressions in `{{ }}`, `if`, `else-if` and `for` no longer run through `new Function`. Alo reads them with its own parser and evaluator, with an allowlist of globals and methods. `constructor`, `__proto__`, `prototype`, `process`, `require` and `globalThis` are blocked. Error messages are fixed text; no expression is run a second time to find an error.
