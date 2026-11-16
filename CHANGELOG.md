@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.4
+
+No change to what the extension does.
+
+- Now also published to [Open VSX](https://open-vsx.org/extension/msilabs/alo-vscode), for VSCodium, Cursor and other editors.
+- The README shows the extension at work: component suggestions, data suggestions and a quick fix.
+- The copy of Alo that comes with the extension is taken from the pinned `@msilabs/alo` 1.2.2 npm package.
+- CI passes on Windows again: the bundled Alo keeps LF line endings in every checkout.
+
 ## 0.1.3
 
 No change to what the extension does. This release hardens how it is built and published.

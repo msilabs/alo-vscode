@@ -3,7 +3,7 @@
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/msilabs.alo-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=msilabs.alo-vscode)
 [![CI](https://github.com/msilabs/alo-vscode/actions/workflows/ci.yml/badge.svg)](https://github.com/msilabs/alo-vscode/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/msilabs/alo-vscode)](LICENSE)
-[![Socket Badge](https://badge.socket.dev/vscode/package/msilabs.alo-vscode/0.1.3?platform=universal)](https://socket.dev/vscode/package/msilabs.alo-vscode/overview/0.1.3)
+[![Socket Badge](https://badge.socket.dev/vscode/package/msilabs.alo-vscode/0.1.4?platform=universal)](https://socket.dev/vscode/package/msilabs.alo-vscode/overview/0.1.4)
 
 Editor support for [Alo](https://github.com/msilabs/alo), the lightweight static web framework where you write plain HTML, CSS and JS with components, layouts, loops and conditions.
 
