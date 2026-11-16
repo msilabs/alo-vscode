@@ -24,7 +24,7 @@ jobs:
                     echo "Tag $GITHUB_REF_NAME does not match package.json version $VERSION"
                     exit 1
                   fi
-            # vsce and the pinned @msilabs/alo come from package-lock.json. vsce's install script only
+            # vsce, ovsx and the pinned @msilabs/alo come from package-lock.json. vsce's install script only
             # sets up signature checks, which packaging does not use.
             - run: npm ci --ignore-scripts
             - run: npm test
@@ -32,6 +32,9 @@ jobs:
               run: npm run package
             - name: Publish to Visual Studio Marketplace
               run: npm exec --no -- vsce publish --oidc --packagePath alo-vscode-${GITHUB_REF_NAME#v}.vsix
+            # Same .vsix to Open VSX (VSCodium, Cursor and others), through its trusted publisher for this workflow.
+            - name: Publish to Open VSX
+              run: npm exec --no -- ovsx publish alo-vscode-${GITHUB_REF_NAME#v}.vsix --trusted-publishing
             # Attach the same .vsix to the GitHub release. If the release is not made yet, make it.
             - name: Attach the .vsix to the GitHub release
               env:

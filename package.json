@@ -151,6 +151,7 @@
     },
     "devDependencies": {
         "@msilabs/alo": "1.2.2",
-        "@vscode/vsce": "4.1.1"
+        "@vscode/vsce": "4.1.1",
+        "ovsx": "1.4.0"
     }
 }
