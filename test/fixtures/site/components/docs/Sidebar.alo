@@ -1,0 +1,185 @@
+<!-- বড় পর্দায় বাঁ পাশের সূচি; ছোট পর্দায় উপরের বার, আর আইকনে চাপলে সূচি বাঁ দিক থেকে ড্রয়ারের মতো আসে -->
+<template>
+    <div class="docs-nav">
+        <div class="bar">
+            <a class="toggle" href="#docs-sidebar" role="button" aria-label="ডকসের সূচি খুলুন" aria-controls="docs-sidebar" aria-expanded="false">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M4 9h16M4 15h10" />
+                </svg>
+            </a>
+            <template for="group in data.docsNav">
+                <template for="link in group.items">
+                    <template if="link.href === route.path">
+                        <span class="crumb">{{ group.title }}</span>
+                        <span class="separator" aria-hidden="true">›</span>
+                        <span class="current">{{ link.label }}</span>
+                    </template>
+                </template>
+            </template>
+        </div>
+
+        <aside class="sidebar" id="docs-sidebar">
+            <nav aria-label="ডকসের সূচি">
+                <template for="group in data.docsNav">
+                    <p class="group">{{ group.title }}</p>
+                    <ul>
+                        <template for="link in group.items">
+                            <li>
+                                <a href="{{ link.href }}" aria-current="{{ route.path === link.href ? 'page' : null }}">{{ link.label }}</a>
+                            </li>
+                        </template>
+                    </ul>
+                </template>
+            </nav>
+        </aside>
+        <a class="backdrop" href="#" aria-label="সূচি বন্ধ করুন" tabindex="-1"></a>
+    </div>
+</template>
+
+<style>
+    .bar,
+    .backdrop {
+        display: none;
+    }
+
+    .sidebar {
+        position: sticky;
+        top: 5.5rem;
+        max-height: calc(100vh - 6.5rem);
+        overflow-y: auto;
+        font-size: 0.95rem;
+    }
+
+    .group {
+        margin-block: 1.5rem 0.4rem;
+        color: var(--text);
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .group:first-child {
+        margin-top: 0;
+    }
+
+    ul {
+        padding: 0;
+        list-style: none;
+    }
+
+    li a {
+        display: block;
+        padding: 0.25rem 0.75rem;
+        border-left: 2px solid var(--border);
+        color: var(--muted);
+        text-decoration: none;
+    }
+
+    li a:hover {
+        color: var(--text);
+    }
+
+    li a[aria-current='page'] {
+        border-left-color: var(--accent);
+        color: var(--accent-strong);
+        font-weight: 600;
+    }
+
+    @media (max-width: 800px) {
+        /* বারটি স্ক্রলেও হেডারের নিচে লেগে থাকে; ড্রয়ার খুললে সেটি হেডারেরও উপরে ওঠে */
+        .docs-nav {
+            position: sticky;
+            top: calc(4rem + 1px);
+            z-index: 5;
+        }
+
+        .docs-nav.open,
+        .docs-nav:has(.sidebar:target) {
+            z-index: 30;
+        }
+
+        .bar {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-inline: -1.25rem;
+            padding: 0.6rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg);
+            font-size: 0.95rem;
+        }
+
+        .toggle {
+            display: grid;
+            place-items: center;
+            margin-right: 0.4rem;
+            color: var(--text);
+        }
+
+        .crumb,
+        .separator {
+            color: var(--muted);
+        }
+
+        .current {
+            overflow: hidden;
+            font-weight: 600;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 30;
+            width: min(19rem, 85vw);
+            max-height: none;
+            padding: 1.5rem 1.25rem;
+            border-right: 1px solid var(--border);
+            background: var(--bg);
+            box-shadow: var(--shadow);
+            transform: translateX(-100%);
+            visibility: hidden;
+            transition: transform 0.2s ease, visibility 0.2s;
+        }
+
+        /* JS থাকলে .open; না থাকলে আইকনের লিংক (#docs-sidebar) দিয়ে :target */
+        .open .sidebar,
+        .sidebar:target {
+            transform: none;
+            visibility: visible;
+        }
+
+        .open .backdrop,
+        .sidebar:target + .backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: block;
+            background: rgb(0 0 0 / 45%);
+        }
+    }
+</style>
+
+<script>
+    const toggle = $el.querySelector('.toggle');
+
+    function setOpen(open) {
+        $el.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+        document.documentElement.style.overflow = open ? 'hidden' : '';
+    }
+
+    toggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        setOpen(!$el.classList.contains('open'));
+    });
+
+    $el.querySelector('.backdrop').addEventListener('click', (event) => {
+        event.preventDefault();
+        setOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') setOpen(false);
+    });
+</script>

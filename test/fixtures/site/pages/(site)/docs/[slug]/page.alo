@@ -1,0 +1,40 @@
+<head>
+    <title>{{ item.title }} | ডকস | {{ data.site.name }}</title>
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ item.title }}">
+    <template if="item.description">
+        <meta name="description" content="{{ item.description }}">
+        <meta property="og:description" content="{{ item.description }}">
+    </template>
+</head>
+
+<template>
+    <div class="doc-page">
+        <article>
+            <h1>{{ item.title }}</h1>
+            <template if="item.description">
+                <p class="lead">{{ item.description }}</p>
+            </template>
+            <div class="prose">
+                {{{ item.body }}}
+            </div>
+            <Docs.Pager />
+        </article>
+        <Docs.Toc body="{{ item.body }}" />
+    </div>
+</template>
+
+<style>
+    h1 {
+        margin-bottom: 0.75rem;
+        font-size: clamp(1.9rem, 5vw, 2.5rem);
+    }
+
+    .lead {
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 1.1rem;
+    }
+</style>

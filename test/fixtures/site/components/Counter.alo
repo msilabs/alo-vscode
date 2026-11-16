@@ -1,0 +1,59 @@
+<template>
+    <div class="counter" data-start="{{ props.start ?? 0 }}">
+        <button type="button" data-step="-1" aria-label="এক কমান">−</button>
+        <output aria-live="polite"></output>
+        <button type="button" data-step="1" aria-label="এক বাড়ান">+</button>
+    </div>
+</template>
+
+<style>
+    .counter {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.35rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+    }
+
+    button {
+        width: 2.75rem;
+        height: 2.75rem;
+        border: 0;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
+
+    button:hover {
+        background: var(--accent);
+        color: #1f1a14;
+    }
+
+    output {
+        min-width: 4rem;
+        font-size: 1.6rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        text-align: center;
+    }
+</style>
+
+<script>
+    // বিল্ডের সময়ের মান আসে data-start থেকে; সংখ্যা দেখায় বাংলা অঙ্কে।
+    const output = $el.querySelector('output');
+    const format = new Intl.NumberFormat('bn-BD');
+    let count = Number($el.dataset.start);
+    output.textContent = format.format(count);
+
+    $el.querySelectorAll('button').forEach((button) => {
+        button.addEventListener('click', () => {
+            count += Number(button.dataset.step);
+            output.textContent = format.format(count);
+        });
+    });
+</script>

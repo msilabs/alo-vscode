@@ -1,0 +1,59 @@
+<template>
+    <div class="faq">
+        <button type="button" aria-expanded="false">
+            <span>{{ props.question }}</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" />
+            </svg>
+        </button>
+        <p>{{ props.answer }}</p>
+    </div>
+</template>
+
+<style>
+    .faq {
+        border-bottom: 1px solid var(--border);
+    }
+
+    button {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        width: 100%;
+        padding: 1.1rem 0;
+        border: 0;
+        background: none;
+        font-size: 1.05rem;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    svg {
+        flex-shrink: 0;
+        color: var(--muted);
+        transition: transform 0.2s ease;
+    }
+
+    p {
+        display: none;
+        padding-bottom: 1.1rem;
+        color: var(--muted);
+    }
+
+    .open p {
+        display: block;
+    }
+
+    .open svg {
+        transform: rotate(180deg);
+    }
+</style>
+
+<script>
+    const button = $el.querySelector('button');
+    button.addEventListener('click', () => {
+        const open = $el.classList.toggle('open');
+        button.setAttribute('aria-expanded', String(open));
+    });
+</script>

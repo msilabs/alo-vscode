@@ -1,0 +1,172 @@
+<head>
+    <title>শুরু করুন | {{ data.site.name }}</title>
+    <meta name="description" content="পাঁচ মিনিটে আলো দিয়ে প্রথম সাইট বানানোর গাইড।">
+</head>
+
+<template>
+    <div class="doc-page">
+    <article class="guide">
+        <p class="eyebrow">গাইড</p>
+        <h1>পাঁচ মিনিটে প্রথম সাইট</h1>
+        <p class="lead">Node.js ২২ বা নতুন ভার্সন থাকলেই চলবে। নিচের ধাপগুলো শেষ হলে আপনার নিজের ব্লগসহ একটি সাইট চালু থাকবে।</p>
+
+        <ol class="steps">
+            <li>
+                <h2 id="প্রজেক্ট-বানান">প্রজেক্ট বানান</h2>
+                <pre><code>npx @msilabs/alo init my-site
+cd my-site
+npm install
+node alo dev</code></pre>
+                <p>ব্রাউজারে খুলুন <code>http://localhost:3000</code>। কোনো ফাইল বদলে সংরক্ষণ করলে পেইজ নিজে থেকে রিলোড হবে।</p>
+                <p>পোর্টফোলিও, ডকুমেন্টেশন বা এক পাতার প্রোডাক্ট সাইট দিয়ে শুরু করতে চাইলে <code>--template</code> দিন, যেমন <code>npx @msilabs/alo init my-site --template portfolio</code>। সব টেমপ্লেটের তালিকা আছে <a href="/docs/installation/#টেমপ্লেট">ইনস্টল</a> পেইজে।</p>
+            </li>
+            <li>
+                <h2 id="ফোল্ডারগুলো-চিনুন">ফোল্ডারগুলো চিনুন</h2>
+                <pre><code>pages/        ← প্রতিটি ফোল্ডার একটি URL
+components/   ← &lt;Card /&gt;, &lt;Header /&gt; এর মতো কম্পোনেন্ট
+data/         ← JSON আর Markdown কনটেন্ট
+global/       ← সব পেইজের CSS আর JS
+public/       ← ছবি, ফন্ট, favicon</code></pre>
+            </li>
+            <li>
+                <h2 id="নতুন-পেইজ-যোগ-করুন">নতুন পেইজ যোগ করুন</h2>
+                <p><code>pages/contact/page.alo</code> ফাইল বানালেই <code>/contact/</code> ঠিকানায় পেইজ তৈরি হয়:</p>
+                <pre><code>&lt;head&gt;
+    &lt;title&gt;যোগাযোগ&lt;/title&gt;
+&lt;/head&gt;
+
+&lt;template&gt;
+    &lt;h1&gt;যোগাযোগ&lt;/h1&gt;
+    &lt;p&gt;ই-মেইল: &lt;a href="mailto:hello@example.com"&gt;hello@example.com&lt;/a&gt;&lt;/p&gt;
+&lt;/template&gt;</code></pre>
+                <p>অথবা চালান <code>node alo new page contact</code>।</p>
+            </li>
+            <li>
+                <h2 id="কম্পোনেন্ট-বানান">কম্পোনেন্ট বানান</h2>
+                <p>যে অংশ বারবার লাগে, সেটি রাখুন <code>components/</code> ফোল্ডারে। ফাইলের নামই ট্যাগের নাম, আর অ্যাট্রিবিউটগুলো পড়া হয় <code>props</code> থেকে:</p>
+                <pre><code>&lt;!-- components/Badge.alo --&gt;
+&lt;template&gt;
+    &lt;span class="badge"&gt;\{{ props.label }}&lt;/span&gt;
+&lt;/template&gt;</code></pre>
+                <p>এরপর যেকোনো পেইজ, লেআউট বা কম্পোনেন্টে লিখুন <code>&lt;Badge label="নতুন" /&gt;</code>। কোনো <code>import</code> লাগে না।</p>
+                <p>কম্পোনেন্ট ফোল্ডারে রাখলে ট্যাগে আসে ফোল্ডারের নামসহ পুরো নাম:</p>
+                <pre><code>components/Card.alo            → &lt;Card /&gt;
+components/blog/PostCard.alo   → &lt;Blog.PostCard /&gt;
+components/post-list/Item.alo  → &lt;PostList.Item /&gt;</code></pre>
+                <ul class="rules">
+                    <li>ফোল্ডারের নাম ছোট হাতের অক্ষরে (<code>post-list</code>), ফাইলের নাম বড় হাতের অক্ষরে শুরু (<code>PostCard.alo</code>)।</li>
+                    <li>সবসময় পুরো নাম লিখুন, <strong>একই ফোল্ডারের ভেতর থেকেও</strong>: <code>components/blog/PostList.alo</code>-এ লিখুন <code>&lt;Blog.PostCard /&gt;</code>, শুধু <code>&lt;PostCard /&gt;</code> নয়।</li>
+                    <li>বন্ধ করার ট্যাগেও পুরো নাম: <code>&lt;Blog.PostCard&gt;…&lt;/Blog.PostCard&gt;</code>।</li>
+                </ul>
+                <p>নাম ভুল হলে আলো এরর দেখায় আর ঠিক নামটি বলে দেয়। ফোল্ডারসহ নতুন কম্পোনেন্ট বানাতে চালান <code>node alo new component blog/PostCard</code>।</p>
+            </li>
+            <li>
+                <h2 id="তালিকা-আর-শর্ত">তালিকা আর শর্ত</h2>
+                <p>লুপ আর শর্ত লেখা হয় শুধু <code>&lt;template&gt;</code> ট্যাগে। এগুলো চলে বিল্ডের সময়, একবার:</p>
+                <pre><code>&lt;ul&gt;
+    &lt;template for="post in data.blog"&gt;
+        &lt;li&gt;&lt;a href="/blog/\{{ post.slug }}/"&gt;\{{ post.title }}&lt;/a&gt;&lt;/li&gt;
+    &lt;/template&gt;
+&lt;/ul&gt;
+
+&lt;template if="data.blog.length === 0"&gt;
+    &lt;p&gt;এখনো কোনো লেখা নেই।&lt;/p&gt;
+&lt;/template&gt;</code></pre>
+            </li>
+            <li>
+                <h2 id="প্রকাশ-করুন">প্রকাশ করুন</h2>
+                <pre><code>node alo build</code></pre>
+                <p>পুরো সাইট তৈরি হয় <code>dist/</code> ফোল্ডারে। GitHub Pages-এর মতো সাব-পাথে রাখলে দিন <code>--base /repo-name/</code>। বিস্তারিত আছে <a href="/blog/deploy-to-github-pages/">এই লেখায়</a>।</p>
+            </li>
+        </ol>
+
+        <Card title="আরও জানতে" class="next">
+            <p>প্রতিটি বিষয়ের বিস্তারিত আছে পাশের সূচিতে: <a href="/docs/pages/">পেইজ</a>, <a href="/docs/components/">কম্পোনেন্ট</a>, <a href="/docs/data/">ডেটা</a>, <a href="/docs/markdown/">Markdown</a>, <a href="/docs/css/">স্কোপড CSS</a>, <a href="/docs/javascript/">JS</a> আর <a href="/docs/deploy/">ডিপ্লয়</a>।</p>
+        </Card>
+        <Docs.Pager />
+    </article>
+    <Docs.Toc headings="{{ [
+        { id: 'প্রজেক্ট-বানান', label: 'প্রজেক্ট বানান' },
+        { id: 'ফোল্ডারগুলো-চিনুন', label: 'ফোল্ডারগুলো চিনুন' },
+        { id: 'নতুন-পেইজ-যোগ-করুন', label: 'নতুন পেইজ যোগ করুন' },
+        { id: 'কম্পোনেন্ট-বানান', label: 'কম্পোনেন্ট বানান' },
+        { id: 'তালিকা-আর-শর্ত', label: 'তালিকা আর শর্ত' },
+        { id: 'প্রকাশ-করুন', label: 'প্রকাশ করুন' },
+    ] }}" />
+    </div>
+</template>
+
+<style>
+    .guide {
+        max-width: var(--reading);
+    }
+
+    h1 {
+        margin-block: 0.5rem 1rem;
+        font-size: clamp(2rem, 5vw, 2.8rem);
+    }
+
+    .lead {
+        color: var(--muted);
+        font-size: 1.15rem;
+    }
+
+    .steps {
+        margin: 3rem 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+    }
+
+    .steps > li {
+        position: relative;
+        padding: 0 0 2.5rem 3.25rem;
+        counter-increment: step;
+    }
+
+    .steps > li::before {
+        content: counter(step, bengali);
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: grid;
+        place-items: center;
+        width: 2.2rem;
+        height: 2.2rem;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #1f1a14;
+        font-weight: 700;
+    }
+
+    .steps > li::after {
+        content: '';
+        position: absolute;
+        top: 2.6rem;
+        bottom: 0.4rem;
+        left: 1.05rem;
+        width: 2px;
+        background: var(--border);
+    }
+
+    .steps > li:last-child::after {
+        display: none;
+    }
+
+    h2 {
+        margin-bottom: 0.75rem;
+        font-size: 1.3rem;
+    }
+
+    .steps p {
+        margin-block: 0.75rem;
+    }
+
+    .rules {
+        padding-left: 1.25rem;
+    }
+
+    .rules li {
+        margin-block: 0.4rem;
+    }
+</style>

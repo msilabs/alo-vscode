@@ -1,0 +1,84 @@
+<!--
+    "এই পেইজে" তালিকা। দুইভাবে ডাকা যায়:
+    body="{{ item.body }}": Markdown-এর বডি থেকে h2 আর h3 খুঁজে নেয়; হেডিংয়ের id Alo নিজেই বসায়।
+    headings="{{ [{ id, label }] }}": হাতে লেখা পেইজের জন্য।
+-->
+<template>
+    <aside class="toc">
+        <p class="title">এই পেইজে</p>
+        <nav aria-label="এই পেইজে">
+            <template for='heading in props.headings ?? [...props.body.matchAll(/<h([23]) id="([^"]+)">(.*?)<\/h\1>/g)].map((match) => ({ level: match[1], id: match[2], label: match[3].replace(/<[^>]+>/g, "") }))'>
+                <a class="level-{{ heading.level ?? 2 }}" href="#{{ heading.id }}">{{{ heading.label }}}</a>
+            </template>
+        </nav>
+    </aside>
+</template>
+
+<style>
+    .toc {
+        position: sticky;
+        top: 5.5rem;
+        align-self: start;
+        max-height: calc(100vh - 6.5rem);
+        overflow-y: auto;
+        font-size: 0.88rem;
+    }
+
+    .title {
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    a {
+        display: block;
+        padding: 0.2rem 0.75rem;
+        border-left: 2px solid var(--border);
+        color: var(--muted);
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: var(--text);
+    }
+
+    .level-3 {
+        padding-left: 1.6rem;
+    }
+
+    a[aria-current='true'] {
+        border-left-color: var(--accent);
+        color: var(--accent-strong);
+    }
+
+    @media (max-width: 1100px) {
+        .toc {
+            display: none;
+        }
+    }
+</style>
+
+<!-- স্ক্রল করলে যে অংশটি পড়া হচ্ছে, তার লিংক চিহ্নিত হয় -->
+<script>
+    const pairs = [];
+    $el.querySelectorAll('a').forEach((link) => {
+        const heading = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        if (heading) pairs.push({ heading, link });
+    });
+
+    if (pairs.length === 0) $el.hidden = true;
+
+    function mark() {
+        let current = null;
+        for (const pair of pairs) {
+            if (pair.heading.getBoundingClientRect().top <= 110) current = pair.link;
+        }
+        for (const pair of pairs) {
+            if (pair.link === current) pair.link.setAttribute('aria-current', 'true');
+            else pair.link.removeAttribute('aria-current');
+        }
+    }
+
+    addEventListener('scroll', mark, { passive: true });
+    mark();
+</script>

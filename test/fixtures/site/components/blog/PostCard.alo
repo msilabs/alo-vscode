@@ -1,0 +1,52 @@
+<template>
+    <Card class="post-card">
+        <p class="meta">
+            <time datetime="{{ props.post.date }}">{{ new Date(props.post.date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) }}</time>
+            <template for="tag in props.post.tags ?? []">
+                <span class="tag">{{ tag }}</span>
+            </template>
+        </p>
+        <h3><a href="/blog/{{ props.post.slug }}/">{{ props.post.title }}</a></h3>
+        <template if="props.post.description">
+            <p class="description">{{ props.post.description }}</p>
+        </template>
+    </Card>
+</template>
+
+<style>
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--muted);
+        font-size: 0.88rem;
+    }
+
+    .tag {
+        padding: 0 0.55rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-size: 0.8rem;
+    }
+
+    h3 {
+        font-size: 1.2rem;
+    }
+
+    h3 a {
+        color: var(--text);
+        text-decoration: none;
+    }
+
+    h3 a:hover {
+        color: var(--accent-strong);
+    }
+
+    .description {
+        margin-top: 0.4rem;
+        color: var(--muted);
+    }
+</style>

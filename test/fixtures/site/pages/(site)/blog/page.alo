@@ -1,0 +1,23 @@
+<head>
+    <title>ব্লগ | {{ data.site.name }}</title>
+    <meta name="description" content="আলো নিয়ে খবর, গাইড আর লেখা।">
+</head>
+
+<template>
+    <p class="eyebrow">ব্লগ</p>
+    <h1>খবর আর গাইড</h1>
+    <p class="lead">মোট {{ new Intl.NumberFormat('bn-BD').format(data.blog.length) }}টি লেখা, নতুনটি আগে।</p>
+    <Blog.PostList posts="{{ data.blog.toReversed() }}" />
+</template>
+
+<style>
+    h1 {
+        margin-block: 0.5rem 0.5rem;
+        font-size: clamp(2rem, 5vw, 2.8rem);
+    }
+
+    .lead {
+        margin-bottom: 2.5rem;
+        color: var(--muted);
+    }
+</style>

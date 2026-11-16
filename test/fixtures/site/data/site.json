@@ -1,0 +1,8 @@
+{
+    "name": "আলো",
+    "tagline": "HTML জানলেই পুরো ওয়েবসাইট",
+    "description": "HTML, CSS আর JS লিখেই কম্পোনেন্ট, লেআউট আর ব্লগসহ পুরো সাইট বানান। হালকা স্ট্যাটিক ফ্রেমওয়ার্ক, কোনো কনফিগারেশন নেই, কোনো নির্ভরতা নেই।",
+    "lang": "bn",
+    "url": "https://msilabs.github.io",
+    "repository": "https://github.com/msilabs/alo"
+}

@@ -7,10 +7,9 @@ const os = require('os');
 const path = require('path');
 const { findProjectRoot, loadCore, listComponents, componentProps, suggestComponent, summarize } = require('../../lib/project');
 
-// The Alo repo is expected next to this one, as in `frameworks/alo` and `frameworks/alo-vscode`.
-const ALO = path.resolve(__dirname, '..', '..', '..', 'alo');
-const EXAMPLE = path.join(ALO, 'site');
-const hasAlo = fs.existsSync(EXAMPLE);
+// Alo comes from the pinned devDependency; the example project is a copy of Alo's site in test/fixtures.
+const ALO = path.resolve(__dirname, '..', '..', 'node_modules', '@msilabs', 'alo');
+const EXAMPLE = path.resolve(__dirname, '..', 'fixtures', 'site');
 
 function tempProject(files = {}) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'alo-vscode-'));
@@ -27,7 +26,7 @@ function installAlo(dir, target = ALO) {
     fs.symlinkSync(target, path.join(dir, 'node_modules', '@msilabs', 'alo'));
 }
 
-test('findProjectRoot walks up to the folder that has pages/', { skip: !hasAlo }, () => {
+test('findProjectRoot walks up to the folder that has pages/', () => {
     assert.equal(findProjectRoot(path.join(EXAMPLE, 'pages', '(site)', 'blog', '[slug]', 'page.alo')), EXAMPLE);
     assert.equal(findProjectRoot(path.join(EXAMPLE, 'components', 'blog', 'PostCard.alo')), EXAMPLE);
     assert.equal(findProjectRoot(path.join(os.tmpdir(), 'no-such-project', 'x.alo')), null);
@@ -39,7 +38,7 @@ test('without node_modules the bundled core is used', () => {
     assert.match(core.version, /^1\./);
 });
 
-test("the project's own Alo 1.x is preferred", { skip: !hasAlo }, () => {
+test("the project's own Alo 1.x is preferred", () => {
     const root = tempProject({ 'pages/page.alo': '<template><h1>hi</h1></template>' });
     installAlo(root);
     const core = loadCore(root);
@@ -47,7 +46,7 @@ test("the project's own Alo 1.x is preferred", { skip: !hasAlo }, () => {
     assert.deepEqual(summarize(root, core), { pages: 1, components: 0 });
 });
 
-test('node_modules above the project is found too', { skip: !hasAlo }, () => {
+test('node_modules above the project is found too', () => {
     const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'alo-vscode-mono-'));
     const root = path.join(parent, 'site');
     fs.mkdirSync(path.join(root, 'pages'), { recursive: true });
@@ -115,4 +114,19 @@ test('suggestComponent finds the closest name', () => {
     assert.equal(suggestComponent('Crad', components, core), 'Card');
     assert.equal(suggestComponent('Blog.PostCrd', components, core), 'Blog.PostCard');
     assert.equal(suggestComponent('Zzzzzzzz', components, core), null);
+});
+
+test('alo-core/ matches the pinned @msilabs/alo (run scripts/copy-core.js after updating it)', () => {
+    const bundled = path.resolve(__dirname, '..', '..', 'alo-core');
+    const version = (dir) => JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).version;
+    assert.equal(version(bundled), version(ALO));
+
+    for (const folder of ['core', 'cli', 'bin']) {
+        const files = fs.readdirSync(path.join(ALO, folder)).filter((f) => f.endsWith('.js'));
+        assert.deepEqual(fs.readdirSync(path.join(bundled, folder)).sort(), files.sort(), `${folder}/ file list`);
+        for (const file of files) {
+            const expected = fs.readFileSync(path.join(ALO, folder, file), 'utf8');
+            assert.equal(fs.readFileSync(path.join(bundled, folder, file), 'utf8'), expected, `${folder}/${file}`);
+        }
+    }
 });

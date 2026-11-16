@@ -8,7 +8,7 @@ const path = require('path');
 
 const TEMP = path.resolve(__dirname, '..', '..', '.vscode-test');
 const RESULTS = path.join(TEMP, 'results.txt');
-const ALO_REPO = path.resolve(__dirname, '..', '..', '..', 'alo');
+const ALO_REPO = path.resolve(__dirname, '..', '..', 'node_modules', '@msilabs', 'alo');
 
 const lines = [];
 const log = (line) => {

@@ -1,0 +1,69 @@
+<!-- data/docs-nav.json-এর ক্রম ধরে আগের আর পরের পেইজের লিংক। এক আইটেমের লুপ দুটি শুধু মান একবার হিসাব করে নাম দেওয়ার জন্য। -->
+<template>
+    <template for="links in [data.docsNav.flatMap((group) => group.items)]">
+        <template for="index in [links.findIndex((link) => link.href === route.path)]">
+            <nav class="pager" aria-label="আগের ও পরের পেইজ">
+                <template if="index > 0">
+                    <a class="previous" href="{{ links[index - 1].href }}">
+                        <small>আগের পেইজ</small>
+                        <span>← {{ links[index - 1].label }}</span>
+                    </a>
+                </template>
+                <template if="index >= 0 && index < links.length - 1">
+                    <a class="next" href="{{ links[index + 1].href }}">
+                        <small>পরের পেইজ</small>
+                        <span>{{ links[index + 1].label }} →</span>
+                    </a>
+                </template>
+            </nav>
+        </template>
+    </template>
+</template>
+
+<style>
+    .pager {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 4rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+    }
+
+    a {
+        display: grid;
+        gap: 0.1rem;
+        padding: 0.8rem 1.1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--text);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    a:hover {
+        border-color: var(--accent);
+    }
+
+    small {
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 400;
+    }
+
+    .next {
+        grid-column: 2;
+        text-align: right;
+    }
+
+    @media (max-width: 560px) {
+        .pager {
+            grid-template-columns: 1fr;
+        }
+
+        .next {
+            grid-column: 1;
+        }
+    }
+</style>

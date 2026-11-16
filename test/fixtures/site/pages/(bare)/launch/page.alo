@@ -1,0 +1,92 @@
+<!-- (bare) গ্রুপে থাকায় এই পেইজে হেডার-ফুটার নেই; noindex থাকায় sitemap-এও আসে না -->
+<head>
+    <title>আলো ১.০ এসেছে | {{ data.site.name }}</title>
+    <meta name="robots" content="noindex">
+</head>
+
+<template>
+    <main class="launch">
+        <Logo />
+        <p class="eyebrow">প্রথম সংস্করণ</p>
+        <h1>আলো ১.০ এসেছে</h1>
+        <p>{{ data.site.description }}</p>
+
+        <pre class="install"><code>npx @msilabs/alo init my-site</code></pre>
+
+        <div class="actions">
+            <a class="button button-primary" href="/docs/">শুরু করুন</a>
+            <a class="button" href="{{ data.site.repository }}">GitHub</a>
+            <a class="button" href="https://www.npmjs.com/package/@msilabs/alo">npm</a>
+        </div>
+
+        <h2>সামনে আসছে</h2>
+        <ul class="planned">
+            <template for="feature in data.features.filter((f) => f.status === 'planned')">
+                <li>{{ feature.title }}</li>
+            </template>
+        </ul>
+        <p class="note">কোনটি আগে চান, <a href="{{ data.site.repository }}/issues">GitHub-এ জানান</a>।</p>
+    </main>
+</template>
+
+<style>
+    .launch {
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 1rem;
+        min-height: 100vh;
+        padding: 2rem;
+        background: radial-gradient(40rem 30rem at 50% 30%, var(--accent-soft), transparent 70%), var(--bg);
+        text-align: center;
+    }
+
+    h1 {
+        font-size: clamp(2.2rem, 6vw, 3.6rem);
+    }
+
+    h2 {
+        margin-top: 1.5rem;
+        font-size: 1.1rem;
+    }
+
+    p:not(.eyebrow) {
+        max-width: 32rem;
+        color: var(--muted);
+    }
+
+    .install {
+        margin: 0.5rem 0;
+        padding: 0.8rem 1.4rem;
+        border-radius: var(--radius-small);
+        background: var(--code-bg);
+        color: var(--code-text);
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .planned {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .planned li {
+        padding: 0.25rem 0.8rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        font-size: 0.9rem;
+    }
+</style>

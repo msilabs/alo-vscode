@@ -24,15 +24,10 @@ jobs:
                     echo "Tag $GITHUB_REF_NAME does not match package.json version $VERSION"
                     exit 1
                   fi
-            # Some tests use Alo's site project, from the Alo repo next to this one. The release
-            # tests against the tag of the Alo that alo-core/ holds, and stops if it cannot be cloned.
-            - name: Clone Alo at the bundled version
-              run: |
-                  ALO_VERSION=$(node -p "require('./alo-core/package.json').version")
-                  git clone --depth 1 --branch "v$ALO_VERSION" https://github.com/msilabs/alo.git ../alo
-            - run: npm test
-            # vsce comes from package-lock.json. Its install script only sets up signature checks, which packaging does not use.
+            # vsce and the pinned @msilabs/alo come from package-lock.json. vsce's install script only
+            # sets up signature checks, which packaging does not use.
             - run: npm ci --ignore-scripts
+            - run: npm test
             - name: Package
               run: npm run package
             - name: Publish to Visual Studio Marketplace

@@ -1,0 +1,99 @@
+<head>
+    <title>কেন আলো | {{ data.site.name }}</title>
+    <meta name="description" content="আলো কী ভেবে বানানো, আর সামনে কী আসছে।">
+</head>
+
+<template>
+    <div class="about reading">
+        <p class="eyebrow">কেন আলো</p>
+        <h1>ছোট সাইটের জন্য ছোট একটি টুল</h1>
+        <p class="lead">
+            একটি পোর্টফোলিও, ছোট ব্যবসার সাইট বা ব্যক্তিগত ব্লগ বানাতে কয়েকশো প্যাকেজ আর নতুন একটি ভাষা শেখার দরকার হওয়ার কথা নয়।
+            আলো বানানো হয়েছে কয়েকটি সহজ নীতি মেনে।
+        </p>
+
+        <ul class="principles">
+            <li>
+                <h2>যা জানেন, তা-ই যথেষ্ট</h2>
+                <p>প্রতিটি <code>.alo</code> ফাইল সাধারণ HTML। নতুন যা শিখতে হয়, তার সবটুকু ধরে যায় এক পাতায়।</p>
+            </li>
+            <li>
+                <h2>কোনো কনফিগারেশন নেই</h2>
+                <p>সবকিছু ঠিক হয় ফোল্ডার আর ফাইলের নাম থেকে। পেইজ মানে <code>pages/</code>, কম্পোনেন্ট মানে <code>components/</code>।</p>
+            </li>
+            <li>
+                <h2>ব্রাউজারে কিছু বাড়তি নয়</h2>
+                <p>লুপ, শর্ত আর কম্পোনেন্ট সব শেষ হয়ে যায় বিল্ডের সময়। ব্রাউজার পায় শুধু HTML, CSS আর আপনার নিজের লেখা JS।</p>
+            </li>
+            <li>
+                <h2>ভুল হলে পরিষ্কার করে বলা</h2>
+                <p>প্রতিটি এররে থাকে ফাইল, লাইন, কোডের অংশ আর সমাধানের ইঙ্গিত।</p>
+            </li>
+        </ul>
+
+        <h2 class="roadmap-title">সামনে যা আসছে</h2>
+        <div class="roadmap">
+            <template for="feature in data.features.filter((f) => f.status !== 'stable')">
+                <Feature feature="{{ feature }}" />
+            </template>
+        </div>
+        <p class="note">
+            নতুন ফিচার যোগ হয় তখনই, যখন আসল ব্যবহারকারীদের সত্যিই দরকার পড়ে। কিছু চাইলে
+            <a href="{{ data.site.repository }}/issues">GitHub-এ জানান</a>।
+        </p>
+    </div>
+</template>
+
+<style>
+    .about {
+        padding-top: 4rem;
+    }
+
+    h1 {
+        margin-block: 0.5rem 1rem;
+        font-size: clamp(2rem, 5vw, 2.8rem);
+    }
+
+    .lead {
+        color: var(--muted);
+        font-size: 1.15rem;
+    }
+
+    .principles {
+        display: grid;
+        gap: 1.75rem;
+        margin: 3rem 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .principles li {
+        padding-left: 1.25rem;
+        border-left: 3px solid var(--accent);
+    }
+
+    .principles h2 {
+        font-size: 1.2rem;
+    }
+
+    .principles p {
+        margin-top: 0.3rem;
+        color: var(--muted);
+    }
+
+    .roadmap-title {
+        margin: 4rem 0 1.5rem;
+        font-size: 1.6rem;
+    }
+
+    .roadmap {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+        gap: 1rem;
+    }
+
+    .note {
+        margin-top: 1.5rem;
+        color: var(--muted);
+    }
+</style>

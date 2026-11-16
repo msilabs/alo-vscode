@@ -1,0 +1,207 @@
+<template>
+    <article class="feature" data-new="{{ props.feature.new }}" data-highlight="{{ props.feature.highlight }}">
+        <div class="top">
+            <span class="icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <template if="props.feature.icon === 'html'">
+                        <path d="M8 7l-5 5 5 5M16 7l5 5-5 5M13.5 4l-3 16" />
+                    </template>
+                    <template else-if="props.feature.icon === 'component'">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                    </template>
+                    <template else-if="props.feature.icon === 'content'">
+                        <path d="M6 3h9l4 4v14H6z" />
+                        <path d="M14 3v5h5M9 13h7M9 17h5" />
+                    </template>
+                    <template else-if="props.feature.icon === 'speed'">
+                        <path d="M13 2L4 14h7l-1 8 9-12h-7z" />
+                    </template>
+                    <template else-if="props.feature.icon === 'reload'">
+                        <path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />
+                    </template>
+                    <template else-if="props.feature.icon === 'deploy'">
+                        <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
+                    </template>
+                    <template else-if="props.feature.icon === 'editor'">
+                        <rect x="3" y="4" width="18" height="16" rx="2" />
+                        <path d="M3 9h18M7 13l2 2-2 2M12 17h4" />
+                    </template>
+                    <template else-if="props.feature.icon === 'template'">
+                        <rect x="3" y="3" width="18" height="6" rx="1.5" />
+                        <rect x="3" y="13" width="8" height="8" rx="1.5" />
+                        <path d="M15 14h6M15 18h6" />
+                    </template>
+                    <template else>
+                        <circle cx="12" cy="12" r="8" />
+                        <path d="M12 8v8M8 12h8" />
+                    </template>
+                </svg>
+            </span>
+            <span class="badges">
+                <template if="props.feature.new">
+                    <span class="badge badge-new">নতুন</span>
+                </template>
+                <template if="props.feature.status === 'stable'">
+                    <span class="badge badge-stable">চালু</span>
+                </template>
+                <template else-if="props.feature.status === 'beta'">
+                    <span class="badge badge-beta">পরীক্ষামূলক</span>
+                </template>
+                <template else>
+                    <span class="badge badge-planned">আসছে</span>
+                </template>
+            </span>
+        </div>
+        <h3>{{ props.feature.title }}</h3>
+        <p>{{ props.feature.text }}</p>
+        <template if="props.feature.command">
+            <pre class="command"><code><span class="prompt">$</span> {{ props.feature.command }}</code></pre>
+        </template>
+        <template if="props.feature.points">
+            <ul class="points">
+                <template for="point in props.feature.points">
+                    <li>{{ point }}</li>
+                </template>
+            </ul>
+        </template>
+        <template if="props.feature.link">
+            <a class="more" href="{{ props.feature.link.href }}">{{ props.feature.link.label }} →</a>
+        </template>
+    </article>
+</template>
+
+<style>
+    .feature {
+        height: 100%;
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+    }
+
+    .feature[data-new] {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .feature[data-highlight] {
+        display: flex;
+        flex-direction: column;
+        padding: 2rem;
+        background: linear-gradient(160deg, var(--surface-soft), var(--surface) 70%);
+    }
+
+    .feature[data-highlight] .icon {
+        width: 3.2rem;
+        height: 3.2rem;
+        border-radius: 14px;
+    }
+
+    .feature[data-highlight] h3 {
+        font-size: 1.35rem;
+    }
+
+    .feature[data-highlight] .points {
+        grid-template-columns: 1fr;
+        gap: 0.65rem;
+        margin: 1.4rem 0 0;
+        padding: 1.2rem 0 0;
+        border-top: 1px solid var(--border);
+        list-style: none;
+    }
+
+    .feature[data-highlight] .points li {
+        position: relative;
+        padding-left: 1.5rem;
+    }
+
+    .feature[data-highlight] .points li::before {
+        content: "";
+        position: absolute;
+        left: 0.15rem;
+        top: 0.45em;
+        width: 0.4rem;
+        height: 0.7rem;
+        border: solid var(--accent-strong);
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+
+    .feature[data-highlight] .more {
+        margin-top: auto;
+        padding-top: 1.4rem;
+    }
+
+    .command {
+        margin: 1.2rem 0 0;
+        padding: 0.7rem 1rem;
+        overflow-x: auto;
+        border-radius: 10px;
+        font-size: 0.88rem;
+        white-space: pre;
+    }
+
+    .command .prompt {
+        margin-right: 0.6rem;
+        color: var(--accent);
+        user-select: none;
+    }
+
+    .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .icon {
+        display: grid;
+        place-items: center;
+        width: 2.6rem;
+        height: 2.6rem;
+        border-radius: 12px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+    }
+
+    h3 {
+        margin-bottom: 0.35rem;
+        font-size: 1.1rem;
+    }
+
+    p {
+        color: var(--muted);
+        font-size: 0.97rem;
+    }
+
+    .badges {
+        display: flex;
+        gap: 0.4rem;
+    }
+
+    .points {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.4rem 2rem;
+        margin: 1rem 0 0;
+        padding-left: 1.2rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+
+    @media (max-width: 700px) {
+        .points {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .more {
+        display: inline-block;
+        margin-top: 1.1rem;
+        color: var(--accent-strong);
+        font-weight: 600;
+    }
+</style>

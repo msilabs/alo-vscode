@@ -150,6 +150,7 @@
         }
     },
     "devDependencies": {
+        "@msilabs/alo": "1.2.2",
         "@vscode/vsce": "4.1.1"
     }
 }

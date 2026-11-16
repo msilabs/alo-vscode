@@ -1,0 +1,51 @@
+[
+    {
+        "title": "শুরু",
+        "items": [
+            { "href": "/docs/", "label": "দ্রুত শুরু" },
+            { "href": "/docs/installation/", "label": "ইনস্টল ও প্রজেক্টের গঠন" }
+        ]
+    },
+    {
+        "title": "মূল ধারণা",
+        "items": [
+            { "href": "/docs/pages/", "label": "পেইজ আর রাউটিং" },
+            { "href": "/docs/layouts/", "label": "লেআউট" },
+            { "href": "/docs/components/", "label": "কম্পোনেন্ট আর প্রপস" },
+            { "href": "/docs/templates/", "label": "টেমপ্লেট: মান, লুপ, শর্ত" },
+            { "href": "/docs/data/", "label": "ডেটা" },
+            { "href": "/docs/markdown/", "label": "Markdown কনটেন্ট" },
+            { "href": "/docs/dynamic-pages/", "label": "ডায়নামিক পেইজ" }
+        ]
+    },
+    {
+        "title": "স্টাইল ও স্ক্রিপ্ট",
+        "items": [
+            { "href": "/docs/css/", "label": "CSS" },
+            { "href": "/docs/javascript/", "label": "JavaScript" }
+        ]
+    },
+    {
+        "title": "প্রকাশ",
+        "items": [
+            { "href": "/docs/build/", "label": "বিল্ড আর আউটপুট" },
+            { "href": "/docs/deploy/", "label": "ডিপ্লয়" },
+            { "href": "/docs/backend/", "label": "ব্যাকএন্ড লাগলে" }
+        ]
+    },
+    {
+        "title": "টুলস",
+        "items": [
+            { "href": "/docs/cli/", "label": "কমান্ড" },
+            { "href": "/docs/vscode/", "label": "VS Code এক্সটেনশন" },
+            { "href": "/docs/ai/", "label": "AI সহকারী দিয়ে কাজ" }
+        ]
+    },
+    {
+        "title": "রেফারেন্স",
+        "items": [
+            { "href": "/docs/faq/", "label": "সাধারণ প্রশ্ন" },
+            { "href": "/docs/not-alo/", "label": "যা Alo করে না" }
+        ]
+    }
+]

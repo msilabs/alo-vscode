@@ -11,7 +11,7 @@
 //   --packaged                                 (with any of the above) tests the built .vsix, installed
 //                                              like a user would, instead of this folder as is
 //
-// Needs VS Code on macOS at the default place (or set VSCODE_BIN) and the `alo` repo next to this one.
+// Needs VS Code on macOS at the default place (or set VSCODE_BIN) and `npm install` done.
 
 const { spawnSync } = require('child_process');
 const fs = require('fs');
@@ -21,10 +21,11 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
 // Kept short on purpose: VS Code's socket path inside the user data folder must stay under 103 characters.
 const TEMP = path.join(ROOT, '.vscode-test');
-const WORKSPACE = path.join(TEMP, 'ws');
+// Outside this repo, so the extension does not find this repo's node_modules/@msilabs/alo above the workspace.
+const WORKSPACE = path.join(fs.realpathSync(os.tmpdir()), 'alo-vscode-ws');
 const USER_DATA = path.join(TEMP, 'ud');
 const RESULTS = path.join(TEMP, 'results.txt');
-const EXAMPLE = path.resolve(ROOT, '..', 'alo', 'site');
+const EXAMPLE = path.join(ROOT, 'test', 'fixtures', 'site');
 const CODE = process.env.VSCODE_BIN || '/Applications/Visual Studio Code.app/Contents/MacOS/Code';
 const USER_SETTINGS = path.join(os.homedir(), 'Library', 'Application Support', 'Code', 'User', 'settings.json');
 

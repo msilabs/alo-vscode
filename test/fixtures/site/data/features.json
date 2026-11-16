@@ -1,0 +1,87 @@
+[
+    {
+        "icon": "html",
+        "title": "শুধু HTML, CSS আর JS",
+        "text": "নতুন কোনো ভাষা নেই। লুপ আর শর্ত লিখুন HTML-এর নিজের <template> ট্যাগে, মান বসান {{ }} দিয়ে।",
+        "status": "stable"
+    },
+    {
+        "icon": "component",
+        "title": "কম্পোনেন্ট আর লেআউট",
+        "text": "components/ ফোল্ডারে ফাইল রাখলেই <Card /> লেখা যায়। কোনো import নেই, কোনো কনফিগারেশন নেই।",
+        "status": "stable"
+    },
+    {
+        "icon": "content",
+        "title": "Markdown আর JSON কনটেন্ট",
+        "text": "data/ ফোল্ডারের প্রতিটি লেখা থেকে নিজে থেকেই পেইজ তৈরি হয়। খসড়া থাকে শুধু আপনার কম্পিউটারে।",
+        "status": "stable"
+    },
+    {
+        "icon": "speed",
+        "title": "হালকা আর দ্রুত",
+        "text": "ব্রাউজারে যায় শুধু তৈরি হওয়া HTML। যে পেইজে স্ক্রিপ্ট নেই, সেখানে এক লাইন JS-ও যায় না।",
+        "status": "stable"
+    },
+    {
+        "icon": "reload",
+        "title": "লাইভ রিলোড",
+        "text": "ফাইল সংরক্ষণ করলেই ব্রাউজার নিজে থেকে রিলোড হয়। ভুল হলে ফাইল আর লাইনসহ এরর দেখায়।",
+        "status": "stable"
+    },
+    {
+        "icon": "deploy",
+        "title": "যেকোনো জায়গায় প্রকাশ",
+        "text": "dist/ ফোল্ডারটিই পুরো সাইট। GitHub Pages, Netlify বা সাধারণ হোস্টিং, সব জায়গায় চলে।",
+        "status": "stable"
+    },
+    {
+        "icon": "editor",
+        "title": "VS Code এক্সটেনশন",
+        "text": "এডিটর এখন আলোর প্রজেক্ট চেনে। VS Code-এর Extensions প্যানেলে খুঁজুন Alo, বিনামূল্যে।",
+        "status": "stable",
+        "highlight": true,
+        "command": "code --install-extension msilabs.alo-vscode",
+        "points": [
+            "< লিখলেই সব কম্পোনেন্টের তালিকা, ফোল্ডারের ভেতরেরগুলোসহ",
+            "data., props. আর item. লিখলেই key আর মানসহ সাজেশন",
+            "কম্পোনেন্ট বা ডেটার নামে Cmd/Ctrl+Click করলে তার ফাইল খোলে",
+            "{{ }} আর <template>-এর লজিকে রং, কম্পোনেন্ট ট্যাগ আলাদা রঙে"
+        ],
+        "link": {
+            "href": "/blog/vscode-extension/",
+            "label": "কীভাবে ইনস্টল আর ব্যবহার করবেন"
+        }
+    },
+    {
+        "icon": "pages",
+        "title": "পেজিনেশন",
+        "text": "লম্বা ব্লগের তালিকা কয়েক পাতায় ভাগ করা।",
+        "status": "planned"
+    },
+    {
+        "icon": "slot",
+        "title": "নামযুক্ত স্লট",
+        "text": "একটি কম্পোনেন্টে একাধিক জায়গায় কনটেন্ট পাঠানো।",
+        "status": "planned"
+    },
+    {
+        "icon": "template",
+        "title": "টেমপ্লেট",
+        "text": "নতুন প্রজেক্ট শুরুর সময় পছন্দের টেমপ্লেট বেছে নিন: blank, portfolio, docs বা landing। না বাছলে আগের মতো ছোট উদাহরণ সাইট।",
+        "status": "stable",
+        "new": true,
+        "highlight": true,
+        "command": "npx @msilabs/alo init my-site --template portfolio",
+        "points": [
+            "blank: শুধু একটি পেইজ, শূন্য থেকে শুরু",
+            "portfolio: প্রজেক্ট, about আর যোগাযোগ; about প্রিন্ট করলে CV",
+            "docs: Markdown থেকে ডকুমেন্টেশন, পাশে মেনু",
+            "landing: hero, ফিচার, দাম আর প্রশ্নের এক পাতা"
+        ],
+        "link": {
+            "href": "/blog/init-templates/",
+            "label": "চারটি টেমপ্লেটের পরিচয়"
+        }
+    }
+]

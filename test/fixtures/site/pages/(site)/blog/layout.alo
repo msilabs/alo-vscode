@@ -1,0 +1,12 @@
+<!-- ব্লগের সব পেইজের জন্য পড়ার মতো সরু কলাম; এটি বসে (site)-এর লেআউটের ভেতরে -->
+<template>
+    <div class="blog reading">
+        <slot />
+    </div>
+</template>
+
+<style>
+    .blog {
+        padding-top: 4rem;
+    }
+</style>

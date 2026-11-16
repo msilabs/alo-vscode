@@ -1,0 +1,57 @@
+<head>
+    <title>{{ item.title }} | {{ data.site.name }}</title>
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ item.title }}">
+    <template if="item.description">
+        <meta name="description" content="{{ item.description }}">
+        <meta property="og:description" content="{{ item.description }}">
+    </template>
+</head>
+
+<template>
+    <article class="post">
+        <a class="back" href="/blog/">← সব লেখা</a>
+        <h1>{{ item.title }}</h1>
+        <p class="meta">
+            <time datetime="{{ item.date }}">{{ new Date(item.date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) }}</time>
+            <template for="tag in item.tags ?? []">
+                <span class="tag">{{ tag }}</span>
+            </template>
+        </p>
+        <div class="prose">
+            {{{ item.body }}}
+        </div>
+    </article>
+</template>
+
+<style>
+    .back {
+        color: var(--muted);
+        font-size: 0.95rem;
+        text-decoration: none;
+    }
+
+    h1 {
+        margin-block: 1rem 0.75rem;
+        font-size: clamp(1.9rem, 5vw, 2.6rem);
+    }
+
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.92rem;
+    }
+
+    .tag {
+        padding: 0 0.55rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-size: 0.82rem;
+    }
+</style>

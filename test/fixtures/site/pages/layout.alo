@@ -1,0 +1,22 @@
+<!-- সব পেইজের জন্য: ফন্ট, favicon আর সাইটের বর্ণনা। হেডার-ফুটার থাকে (site) গ্রুপের লেআউটে। -->
+<head>
+    <meta name="description" content="{{ data.site.description }}">
+    <meta name="theme-color" content="#f5a524">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ data.site.name }}">
+    <meta property="og:url" content="{{ data.site.url }}{{ base.slice(0, -1) }}{{ route.path }}">
+    <meta property="og:description" content="{{ data.site.description }}">
+    <meta property="og:image" content="{{ data.site.url }}{{ base }}og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="{{ data.site.name }}: {{ data.site.tagline }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap">
+</head>
+
+<template>
+    <slot />
+</template>

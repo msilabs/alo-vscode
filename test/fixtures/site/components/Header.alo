@@ -1,0 +1,100 @@
+<template>
+    <header class="site-header">
+        <div class="bar container">
+            <Logo />
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">মেনু</button>
+            <nav id="site-nav" aria-label="প্রধান মেনু">
+                <template for="link in data.menu">
+                    <a href="{{ link.href }}" aria-current="{{ (link.href === '/' ? route.path === '/' : route.path.startsWith(link.href)) ? 'page' : null }}">{{ link.label }}</a>
+                </template>
+                <a class="github" href="{{ data.site.repository }}">GitHub</a>
+            </nav>
+        </div>
+    </header>
+</template>
+
+<style>
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in srgb, var(--bg) 85%, transparent);
+        backdrop-filter: blur(12px);
+    }
+
+    .bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        min-height: 4rem;
+    }
+
+    nav {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    nav a {
+        padding: 0.4rem 0.8rem;
+        border-radius: 999px;
+        color: var(--muted);
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    nav a:hover {
+        color: var(--text);
+    }
+
+    nav a[aria-current='page'] {
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+    }
+
+    .github {
+        margin-left: 0.5rem;
+        border: 1px solid var(--border);
+    }
+
+    .menu-toggle {
+        display: none;
+        padding: 0.4rem 0.9rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+    }
+
+    @media (max-width: 720px) {
+        .menu-toggle {
+            display: block;
+        }
+
+        nav {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            padding-bottom: 1rem;
+        }
+
+        .open nav {
+            display: flex;
+        }
+
+        .github {
+            margin-left: 0;
+        }
+    }
+</style>
+
+<script>
+    const toggle = $el.querySelector('.menu-toggle');
+    toggle.addEventListener('click', () => {
+        const open = $el.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', String(open));
+    });
+</script>

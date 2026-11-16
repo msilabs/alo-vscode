@@ -1,0 +1,235 @@
+<head>
+    <title>{{ data.site.name }}: {{ data.site.tagline }}</title>
+</head>
+
+<template>
+    <section class="hero">
+        <div class="container">
+            <p class="eyebrow">হালকা স্ট্যাটিক ওয়েব ফ্রেমওয়ার্ক</p>
+            <h1>HTML জানলেই<br>পুরো ওয়েবসাইট</h1>
+            <p class="lead">
+                কম্পোনেন্ট, লেআউট আর ব্লগসহ সাইট বানান সাধারণ HTML, CSS আর JavaScript লিখে।
+                বিল্ড করলে পাবেন হালকা, দ্রুত স্ট্যাটিক সাইট, যা যেকোনো হোস্টিংয়ে চলে।
+            </p>
+            <div class="actions">
+                <a class="button button-primary" href="/docs/">শুরু করুন</a>
+                <a class="button" href="{{ data.site.repository }}">GitHub-এ দেখুন</a>
+            </div>
+            <pre class="install"><code><span class="prompt">$</span> npx @msilabs/alo init my-site</code></pre>
+            <p class="install-note">
+                অন্য ধরনের সাইটের জন্য <code>--template</code> দিন:
+                <a href="/docs/installation/#টেমপ্লেট">blank, portfolio, docs, landing</a>
+            </p>
+        </div>
+    </section>
+
+    <section class="section container">
+        <header class="section-head">
+            <p class="eyebrow">যা যা পাবেন</p>
+            <h2>ছোট সাইটের যা লাগে, তার সবটুকু</h2>
+        </header>
+        <div class="grid features-grid">
+            <template for="feature in data.features.filter((f) => f.status === 'stable' && !f.highlight)">
+                <Feature feature="{{ feature }}" />
+            </template>
+        </div>
+        <div class="highlights">
+            <template for="feature in data.features.filter((f) => f.status === 'stable' && f.highlight)">
+                <Feature feature="{{ feature }}" />
+            </template>
+        </div>
+    </section>
+
+    <section class="section container split">
+        <div>
+            <p class="eyebrow">দেখতে ঠিক HTML-এর মতো</p>
+            <h2>একবার লিখুন, সব জায়গায় বসান</h2>
+            <p>
+                <code>components/</code> ফোল্ডারে একটি ফাইল রাখলেই সেটি কম্পোনেন্ট। কোনো import নেই, কোনো কনফিগারেশন নেই।
+                অ্যাট্রিবিউট দিয়ে যা পাঠান, কম্পোনেন্টের ভেতরে সেটি পাওয়া যায় <code>props</code>-এ।
+            </p>
+            <a href="/docs/">গাইডে আরও দেখুন →</a>
+        </div>
+        <div class="code-pair">
+            <pre><code><span class="file">components/Card.alo</span>
+&lt;template&gt;
+    &lt;article class="card"&gt;
+        &lt;h3&gt;\{{ props.title }}&lt;/h3&gt;
+        &lt;slot /&gt;
+    &lt;/article&gt;
+&lt;/template&gt;</code></pre>
+            <pre><code><span class="file">pages/page.alo</span>
+&lt;template&gt;
+    &lt;Card title="স্বাগতম"&gt;
+        &lt;p&gt;আলো দিয়ে বানানো প্রথম কার্ড।&lt;/p&gt;
+    &lt;/Card&gt;
+&lt;/template&gt;</code></pre>
+        </div>
+    </section>
+
+    <section class="section container split">
+        <div>
+            <p class="eyebrow">ইন্টারঅ্যাকটিভ কম্পোনেন্ট</p>
+            <h2>দরকার হলে সাধারণ JavaScript</h2>
+            <p>
+                এই কাউন্টারটি একটি আলো কম্পোনেন্ট। তার স্ক্রিপ্টে <code>$el</code> হলো কম্পোনেন্টের নিজের এলিমেন্ট,
+                আর শুরুর সংখ্যাটি বিল্ডের সময় আসে <code>data-start</code> অ্যাট্রিবিউট দিয়ে। কোনো রিঅ্যাক্টিভ রানটাইম নেই।
+            </p>
+        </div>
+        <div class="demo">
+            <Counter start="{{ 10 }}" />
+        </div>
+    </section>
+
+    <section class="section container">
+        <header class="section-head">
+            <p class="eyebrow">ব্লগ</p>
+            <h2>সাম্প্রতিক লেখা</h2>
+        </header>
+        <Blog.PostList posts="{{ data.blog.toReversed().slice(0, 3) }}" />
+    </section>
+
+    <section class="section reading">
+        <header class="section-head">
+            <p class="eyebrow">প্রশ্ন আর উত্তর</p>
+            <h2>যা প্রায়ই জানতে চাওয়া হয়</h2>
+        </header>
+        <template for="item in data.faq">
+            <Faq question="{{ item.question }}" answer="{{ item.answer }}" />
+        </template>
+    </section>
+</template>
+
+<style>
+    .hero {
+        padding-block: 6rem 4.5rem;
+        background:
+            radial-gradient(50rem 22rem at 50% -6rem, var(--accent-soft), transparent 70%),
+            var(--bg);
+        text-align: center;
+    }
+
+    h1 {
+        margin-block: 0.75rem 1.25rem;
+        font-size: clamp(2.4rem, 6vw, 4rem);
+        line-height: 1.2;
+    }
+
+    .lead {
+        max-width: 40rem;
+        margin-inline: auto;
+        color: var(--muted);
+        font-size: 1.15rem;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 2rem;
+    }
+
+    .install {
+        display: inline-block;
+        margin-top: 2rem;
+        padding: 0.7rem 1.2rem;
+        border-radius: 999px;
+        text-align: left;
+    }
+
+    .install-note {
+        margin-top: 0.9rem;
+        font-size: 0.9rem;
+        color: var(--muted);
+    }
+
+    .prompt {
+        margin-right: 0.6rem;
+        color: var(--accent);
+        user-select: none;
+    }
+
+    .section {
+        padding-top: 5.5rem;
+    }
+
+    .section-head {
+        margin-bottom: 2rem;
+    }
+
+    h2 {
+        margin-top: 0.4rem;
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+    }
+
+    @media (max-width: 960px) {
+        .grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .highlights {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+        margin-top: 1.25rem;
+    }
+
+    @media (max-width: 860px) {
+        .highlights {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .split {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        align-items: center;
+        gap: 3rem;
+    }
+
+    .split p {
+        margin-block: 1rem;
+        color: var(--muted);
+    }
+
+    .code-pair {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .file {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--accent);
+        font-size: 0.8rem;
+    }
+
+    .demo {
+        display: grid;
+        place-items: center;
+        min-height: 14rem;
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+    }
+
+    @media (max-width: 860px) {
+        .split {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

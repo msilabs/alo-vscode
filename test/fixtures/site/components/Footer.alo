@@ -1,0 +1,101 @@
+<template>
+    <footer class="site-footer">
+        <div class="columns container">
+            <div class="about">
+                <Logo place="footer" />
+                <p>{{ data.site.description }}</p>
+            </div>
+            <div>
+                <h2>সাইট</h2>
+                <ul>
+                    <template for="link in data.menu">
+                        <li><a href="{{ link.href }}">{{ link.label }}</a></li>
+                    </template>
+                </ul>
+            </div>
+            <div>
+                <h2>প্রজেক্ট</h2>
+                <ul>
+                    <li><a href="{{ data.site.repository }}">GitHub</a></li>
+                    <li><a href="{{ data.site.repository }}/issues">প্রশ্ন বা সমস্যা</a></li>
+                    <li><a href="https://www.npmjs.com/package/@msilabs/alo">npm প্যাকেজ</a></li>
+                    <li><a href="https://msilabs.github.io/adhar/">Adhar (ব্যাকএন্ড)</a></li>
+                    <li><a href="{{ data.site.repository }}/blob/main/LICENSE">লাইসেন্স</a></li>
+                </ul>
+            </div>
+        </div>
+        <p class="legal container">আলো <a href="https://msilabs.github.io">msilabs</a>-এর একটি ওপেন সোর্স প্রজেক্ট, MIT লাইসেন্সে। এই সাইটটিও আলো দিয়ে বানানো।</p>
+    </footer>
+</template>
+
+<style>
+    .site-footer {
+        margin-top: 6rem;
+        padding-block: 3rem 2rem;
+        border-top: 1px solid var(--border);
+        background: var(--surface-soft);
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+
+    .columns {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 2.5rem;
+    }
+
+    .about p {
+        max-width: 26rem;
+        margin-top: 0.75rem;
+    }
+
+    h2 {
+        margin-bottom: 0.5rem;
+        color: var(--text);
+        font-size: 0.95rem;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    a {
+        color: var(--muted);
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: var(--accent-strong);
+    }
+
+    .legal {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.85rem;
+    }
+
+    .legal a {
+        color: var(--text);
+        text-decoration: underline;
+        text-decoration-color: var(--muted);
+        text-underline-offset: 3px;
+    }
+
+    .legal a:hover {
+        color: var(--accent-strong);
+        text-decoration-color: currentColor;
+    }
+
+    @media (max-width: 720px) {
+        .columns {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .about {
+            grid-column: 1 / -1;
+        }
+    }
+</style>

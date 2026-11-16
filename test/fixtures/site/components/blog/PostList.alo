@@ -1,0 +1,14 @@
+<template>
+    <div class="post-list">
+        <template for="post in props.posts">
+            <Blog.PostCard post="{{ post }}" />
+        </template>
+    </div>
+</template>
+
+<style>
+    .post-list {
+        display: grid;
+        gap: 1.25rem;
+    }
+</style>
