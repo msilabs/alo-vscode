@@ -6,6 +6,7 @@ scripts/**
 **/.DS_Store
 .github/**
 icons/alo.svg
+images/**
 
 site/**
 .gitattributes

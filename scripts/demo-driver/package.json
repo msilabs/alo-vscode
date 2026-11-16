@@ -1,0 +1,14 @@
+{
+    "name": "alo-demo-driver",
+    "displayName": "Alo demo driver",
+    "description": "Types the README demos for scripts/screenshots.sh. Not published.",
+    "version": "0.0.1",
+    "publisher": "msilabs",
+    "license": "MIT",
+    "private": true,
+    "engines": {
+        "vscode": "^1.90.0"
+    },
+    "activationEvents": ["onStartupFinished"],
+    "main": "./extension.js"
+}

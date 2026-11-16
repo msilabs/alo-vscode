@@ -9,6 +9,8 @@ Editor support for [Alo](https://github.com/msilabs/alo), the lightweight static
 
 The extension uses Alo's own code to understand your project, so the editor follows the same rules as `node alo build`: the same component names, the same errors, the same hints.
 
+![Alo in VS Code](images/overview.png)
+
 ## Features
 
 **Highlighting.** `.alo` files are HTML, with `{{ }}`, `{{{ }}}` and `<template for / if / else-if / else>` coloured as JavaScript, component tags coloured like classes, and CSS and JS inside `<style>` and `<script>` with their own comments, brackets and suggestions.
@@ -25,9 +27,13 @@ The extension uses Alo's own code to understand your project, so the editor foll
 - `props.` in a component lists the props it reads and the ones pages pass to it.
 - Cmd/Ctrl+Click `data.site.name` to open `data/site.json` at `"name"`.
 
+![Data suggestions](images/data.gif)
+
 **Alo's errors while you type.** Alo checks your project as you type, without saving, and shows its errors and warnings with their hints. An error inside a component links to the page that used it.
 
 **Quick fixes** (Cmd/Ctrl+.) for what Alo suggests:
+
+![Quick fix](images/quick-fix.gif)
 
 | Alo says | Quick fix |
 | --- | --- |
