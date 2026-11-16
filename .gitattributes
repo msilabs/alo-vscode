@@ -1,0 +1,2 @@
+# Keep the bundled Alo byte for byte the same as the npm package, also on Windows checkouts
+alo-core/** text eol=lf
